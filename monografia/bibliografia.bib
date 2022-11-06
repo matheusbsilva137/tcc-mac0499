@@ -1,0 +1,43 @@
+@inproceedings{set-membership,
+  title={Approximate Membership of Sets : A Survey},
+  author={Elias Szabo-Wexler szabowexler},
+  year={2014}
+}
+
+@inproceedings{10.1145/2674005.2674994,
+author = {Fan, Bin and Andersen, Dave G. and Kaminsky, Michael and Mitzenmacher, Michael D.},
+title = {Cuckoo Filter: Practically Better Than Bloom},
+year = {2014},
+isbn = {9781450332798},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2674005.2674994},
+doi = {10.1145/2674005.2674994},
+abstract = {In many networking systems, Bloom filters are used for high-speed set membership tests. They permit a small fraction of false positive answers with very good space efficiency. However, they do not permit deletion of items from the set, and previous attempts to extend "standard" Bloom filters to support deletion all degrade either space or performance.We propose a new data structure called the cuckoo filter that can replace Bloom filters for approximate set membership tests. Cuckoo filters support adding and removing items dynamically while achieving even higher performance than Bloom filters. For applications that store many items and target moderately low false positive rates, cuckoo filters have lower space overhead than space-optimized Bloom filters. Our experimental results also show that cuckoo filters outperform previous data structures that extend Bloom filters to support deletions substantially in both time and space.},
+booktitle = {Proceedings of the 10th ACM International on Conference on Emerging Networking Experiments and Technologies},
+pages = {75–88},
+numpages = {14},
+keywords = {bloom filters, cuckoo hashing, compression},
+location = {Sydney, Australia},
+series = {CoNEXT '14}
+}
+
+@ARTICLE{5751342,  author={Tarkoma, Sasu and Rothenberg, Christian Esteve and Lagerspetz, Eemil},  journal={IEEE Communications Surveys & Tutorials},   title={Theory and Practice of Bloom Filters for Distributed Systems},   year={2012},  volume={14},  number={1},  pages={131-155},  doi={10.1109/SURV.2011.031611.00024}}
+
+@Article{Mosharraf2022,
+author={Mosharraf, Sharafat Ibn Mollah
+and Adnan, Muhammad Abdullah},
+title={Improving lookup and query execution performance in distributed Big Data systems using Cuckoo Filter},
+journal={Journal of Big Data},
+year={2022},
+month={Jan},
+day={26},
+volume={9},
+number={1},
+pages={12},
+abstract={Performance is a critical concern when reading and writing data from billions of records stored in a Big Data warehouse. We introduce two scopes for query performance improvement. One is to improve the performance of lookup queries after data deletion in Big Data systems that use Eventual Consistency. We propose a scheme to improve lookup performance after data deletion by using Cuckoo Filter. Another scope for improvement is to avoid unnecessary network round-trips for querying in remote nodes in a distributed Big Data cluster when it is known that the nodes do not have requested partition of data. We propose a scheme using probabilistic filters that are looked up before querying remote nodes so that queries resulting in no data can be skipped from passing through the network. We evaluate our schemes with Cassandra using real dataset and show that each scheme can improve performance of lookup queries for up to 2x.},
+issn={2196-1115},
+doi={10.1186/s40537-022-00563-w},
+url={https://doi.org/10.1186/s40537-022-00563-w}
+}
+

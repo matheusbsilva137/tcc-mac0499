@@ -37,6 +37,11 @@
 % mesmo resultado impresso, mas com margens diferentes, se o tamanho do
 % papel for diferente.
 \usepackage[a4paper]{geometry}
+\usepackage[portuguese,ruled,linesnumbered]{algorithm2e}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+
+\usetikzlibrary{matrix}
 
 \geometry{
   textwidth=152mm,
@@ -118,7 +123,7 @@
 % dados, como uma lista de palavras-chave ou o resumo.
 \hypersetup{
   pdfkeywords={LaTeX, artigo},
-  pdfsubject={Uma variante do arquivo tese.tex usando a classe article.},
+  pdfsubject={Estudo do efeito de variações de Bloom filters no desempenho de consultas no banco de dados Apache Cassandra},
 }
 
 % É possível definir como determinadas palavras podem (ou não) ser
@@ -161,30 +166,29 @@ invés de \textsf{utf8} ou mesmo não ter configuração pré-definida para
 caracteres acentuados. Além disso, eles muito frequentemente utilizam
 bibtex ao invés de biblatex para a geração automática da bibliografia.
 
-\printbibliography[
-  title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT
-  %title=\bibname\label{bibliografia}, % "Bibliografia"
-]
-
 \newpage
 
 \section{\textit{Approximate set membership}}
 
 A representação de \textbf{conjuntos} de elementos por meio de estruturas de dados requer que essas estruturas sejam capazes de indicar não só as informações armazenadas, mas também responder quais elementos estão no conjunto. Nesse contexto, a verificação de que um dado elemento $x$ é membro de um conjunto $S$ (isto é, $x \in S$) é chamada de \textit{membership testing} (teste de membresia).
 
-A construção de soluções para o problema de verificar se um elemento pertence a um conjunto pode ser baseada em uma das seguintes variantes do problema: \textbf{estática} ou \textbf{dinâmica}. Essa classificação é feita de acordo com as informações dadas no momento de execução de buscas de elementos no conjunto. Na variante estática do problema, assume-se que o conjunto $S$ tem um tamanho fixo, logo todos os elementos do conjunto são expressos antes das consultas. Já na variante dinâmica, inserções e consultas podem estar intercaladas.
+A construção de soluções para o problema de verificar se um elemento pertence a um conjunto pode ser baseada em uma das seguintes variantes do problema: \textbf{estática} ou \textbf{dinâmica}. Essa classificação é feita de acordo com as informações dadas no momento de execução de buscas de elementos no conjunto. Na variante estática do problema, assume-se que o conjunto $S$ tem um tamanho fixo. Logo, todos os elementos do conjunto são expressos antes das consultas, enquanto na variante dinâmica, inserções e consultas podem estar intercaladas.
 
-Para ambas as variantes do problema, a construção de uma estratégia eficiente que permita obter uma \textbf{resposta determinística} para os \textit{membership tests} pode não ser imediata. Uma solução intuitiva, mas que demanda o consumo linear de espaço é a comparação do elemento a ser verificado com cada um dos elementos do conjunto. No entanto, em alguns cenários, a escalabilidade é um requisito fundamental, portanto é desejável que se evite o consumo linear de espaço.
+Seja $n = |S|$, uma solução intuitiva e determinística para determinar se $x \in S$ requer a comparação do elemento $x$ com cada um dos $n$ elementos de $S$. No entanto, a aplicação dessa estratégia pressupõe uma representação de $S$ que consome espaço $\Theta(n)$, isto é, exige consumo linear de espaço. Logo, essa não é uma alternativa vantajosa para os cenários em que o \textbf{espaço é escasso} ou não é desejável ou necessário representar cada elemento do conjunto.
 
-Assim, propõe-se o \textit{approximate set membership} (teste de membresia aproximado) como uma \textbf{solução probabilística} que permite responder consultas sobre um conjunto de forma aproximada, com o custo de resultados falsos positivos. Um resultado falso positivo ocorre com probabilidade $\epsilon$, logo $0 < \epsilon < 1$.
+Para os cenários em que o espaço é escasso, propõe-se o \textit{approximate set membership} (teste de membresia aproximado) como uma \textbf{solução probabilística} que permite responder consultas sobre um conjunto de forma aproximada.
+
+À medida que essa estrutura para responder testes de membresia é comprimida, passa a existir o custo de resultados falsos positivos -- a estrutura responde que um elemento está no conjunto, quando na verdade não está. A probabilidade de ocorrência desses resultados depende do nível da compressão e da estratégia adotada pela estrutura que responde aos testes de membresia.
 
 \subsection{Implementação de Dicionário Completo}
 
-Dicionários completos são estruturas de dados que apresentam uma entrada para cada elemento de um conjunto (isto é, há enumeração completa dos elementos).
+Dicionário completo (ou simplesmente dicionário) é um tipo de estrutura de dados que apresenta uma entrada para cada elemento de um conjunto (isto é, há enumeração completa dos elementos). Logo, um dicionário provê respostas determinísticas para testes de membresia ao custo de consumo de espaço $\Theta(n)$.
+
+Dicionários podem ser implementados a partir de \textit{hash tables}, árvores rubro-negras ou outras estruturas de dados que permitam, usualmente, o mapeamento de pares chave-valor.
 
 \subsubsection{Interface}
 
-Um dicionário completo deve implementar os seguintes comandos:
+Um dicionário deve implementar os seguintes comandos:
 \begin{itemize}
     \item \texttt{INSERT(x)}: insere um dado elemento $x$ no conjunto $S$;
     \item \texttt{QUERY(x)}: verifica se um dado elemento $x$ é membro do conjunto $S$ (\textit{membership testing});
@@ -192,9 +196,11 @@ Um dicionário completo deve implementar os seguintes comandos:
 
 \subsubsection{\textit{Hash table}}
 
-\textit{Hash table} é uma implementação possível para a estrutura de dicionário completo. Essa estrutura mantém um array de \textit{buckets} que comportam zero ou mais elementos do conjunto $S$. Também escolhe-se uma função de \textit{hashing} $h$, $h: \mathcal{U} \xrightarrow{} \{0,1,...,m\}$ que mapeia cada elemento do conjunto a um \textit{bucket} indexado por um número no intervalo $[0,m]$, em que $m < |\mathcal{U}|$. Logo, no caso de colisão de \textit{hashing} (onde vários elementos do conjunto são mapeados para um \textit{bucket} de mesmo índice) deve existir um \textbf{esquema de resolução de colisão}.
+\textit{Hash table} é uma implementação possível para a estrutura de dicionário completo. Essa estrutura mantém um array de \textit{buckets} que comportam zero ou mais elementos do conjunto $S$. 
 
-Um esquema de resolução de colisão deve permitir que vários elementos do conjunto mapeados para o mesmo \textit{bucket} possam ser identificados individualmente. Um possível esquema de resolução de colisão é a construção de uma lista ligada que contenha todos os elementos mapeados para um mesmo \textit{bucket}.
+Seja $\mathcal{U}$ o conjunto universo, também escolhe-se uma função de \textit{hashing} $h$, $h: \mathcal{U} \xrightarrow{} \{0,1,...,m\}$ que mapeia cada elemento do conjunto a um \textit{bucket} indexado por um número no intervalo $[0,m]$, em que $m < |\mathcal{U}|$. Logo, no caso de colisão de \textit{hashing} (onde vários elementos do conjunto são mapeados para um \textit{bucket} de mesmo índice) deve existir um \textbf{esquema de resolução de colisão}.
+
+Um esquema de resolução de colisão deve permitir que vários elementos do conjunto mapeados para o mesmo \textit{bucket} possam ser univocamente identificados. Um possível esquema de resolução de colisão é a construção de uma lista ligada que contenha todos os elementos mapeados para um mesmo \textit{bucket}.
 
 Uma implementação de dicionário completo com \textit{hash table} deve aplicar os procedimentos seguintes para cada comando:
 \begin{itemize}
@@ -202,19 +208,308 @@ Uma implementação de dicionário completo com \textit{hash table} deve aplicar
     \item \texttt{QUERY(x)}: usa-se a função de hashing $h$ para obter um índice $i = h(x)$, $0 \leq i < m$. Então, busca-se o elemento no \textit{bucket} de índice $i$. Se o elemento é encontrado, retorna que $x \in S$, senão retorna que $x \notin S$.
 \end{itemize}
 
-Seja $u = |\mathcal{U}|$ o tamanho do conjunto universo e $n=|S|$ o tamanho do conjunto contido em $U$, logo, há $\binom{u}{n}$ conjuntos $S$ distintos que podem ser representados pela estrutura. Portanto, a memória necessária, em bits, para representar computacionalmente todos os possíveis conjuntos $S$ é limitada superiormente por $\log_2 \binom{u}{n} = n \log_2 \frac{u}{n} + \theta(n)$. \footnote{Pretendo destrinchar melhor essa passagem}
+Essas dinâmicas são ilustradas na Figura \ref{hash-table}.
 
-Essa implementação permite que consultas sejam realizadas com tempo esperado $O(1)$ ou, no pior caso, em tempo $\theta(n)$. Já inserções são sempre realizadas em tempo $O(1)$ desde que se considere um esquema de resolução de conflitos também $O(1)$ (como a implementação de uma lista ligada, que permite a inserção de novos elementos em tempo $\theta(1)$). \footnote{citar fonte ou demonstrar} No entanto, elementos com comprimentos grandes podem requerer vários acessos ao disco e causar perda de desempenho, logo é desejável minimizar a quantidade de acessos ao disco, de modo que o consumo real de tempo aproxime-se do esperado.
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[anchor=center,array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=10mm, fill=green!30},column sep=-\pgflinewidth, row sep=0.5mm, nodes in empty cells, 
+row 1/.style={nodes={font=\footnotesize, draw=none, fill=none, minimum size=7mm}}}]
+
+          \node[fill=teal!50] (h) {h(x)};
+          \node[right=of h, font=\Large, label={below:índice}, inner sep=0] (i) {$i$};
+          \matrix[right=of i, label={below:Array de \textit{buckets}}, array] (array) {
+        0 & ... & $i$ & ... & $m-1$\\
+          &   &$x'$&   &  \\};
+          
+          \draw[<-] (h) -- ++(-2,0) node[below, pos=0.8] {$x$};
+          \draw[->] (h) -- (i) node[above, pos=0.8] {};
+          \draw[->] (i) -- (array) node[above, pos=0.8] {};
+  
+        \end{tikzpicture}
+        \caption{\label{hash-table} Esquema do funcionamento de um dicionário implementado com \textit{hash table}}
+    \end{center}
+\end{figure}
+
+Seja $u = |\mathcal{U}|$ o tamanho do conjunto universo e $n=|S|$ o tamanho do conjunto contido em $U$, logo, há $\binom{u}{n}$ conjuntos $S$ distintos que podem ser representados pela estrutura. Portanto, a memória necessária, em bits, para representar computacionalmente todos os possíveis conjuntos $S$ é limitada superiormente por $\log_2 \binom{u}{n} = n \log_2 \frac{u}{n} + \Theta(n)$.
+
+Essa implementação permite que consultas sejam realizadas com tempo esperado $O(1)$ ou, no pior caso, em tempo $\Theta(n)$. Já inserções são sempre realizadas em tempo $O(1)$ desde que se considere um esquema de resolução de conflitos com inserção em tempo $O(1)$ (como a implementação de uma lista ligada).
+
+No entanto, o armazenamento e o acesso a elementos com comprimentos grandes (em bits) podem requerer vários acessos ao disco e causar perda de desempenho. Logo, é desejável minimizar a quantidade de acessos ao disco, de modo que o consumo real de tempo aproxime-se do esperado.
 
 \subsubsection{\textit{Hash Compaction}}
 
-A implementação de dicionários completos com \textit{hash compaction}, introduzida por Wolper e Leroy, viabiliza uma \textbf{relação linear} entre o número de elementos do conjunto e o espaço consumido pela estrutura. Essa estrutura armazena os elementos do conjunto em \textbf{blocos de tamanho fixo}, assim todo elemento inserido na estrutura consome o mesmo espaço (em bits). Para isso, usa-se uma nova função de hashing $H$, $H: \mathcal{U} \mapsto \{0, 1\}^l$, onde $l$ é o comprimento dos blocos na estrutura.
+A implementação de dicionários completos com \textit{hash compaction}, proposta por Wolper e Leroy, viabiliza uma \textbf{relação linear} entre o número de elementos do conjunto e o espaço consumido pela estrutura. Essa estrutura armazena os elementos do conjunto em \textbf{blocos de tamanho fixo}.
 
-Todo elemento é comprimido em $l$ bits pela função de hashing $H$ antes de ser inserido na estrutura. Implementações com \textit{hash compaction} devem aplicar os seguintes procedimentos para cada comando:
+Assim, todo elemento inserido na estrutura consome o mesmo espaço (em bits). Para isso, usa-se uma nova função de hashing $H$, $H: \mathcal{U} \mapsto \{0, 1\}^l$, onde $l$ é o comprimento (em bits) dos blocos na estrutura. Desta forma, todo elemento é comprimido em $l$ bits pela função de hashing $H$ antes de ser inserido na estrutura.
+
+Implementações com \textit{hash compaction} devem aplicar os seguintes procedimentos para cada comando:
 
 \begin{itemize}
     \item \texttt{INSERT(x)}: aplica-se o procedimento de inserção usado na implementação com \textit{hash table} para incluir uma representação comprimida de $x$ na estrutura. Seja $x' = H(x)$ a representação comprimida de $x$ e $i = h(x')$, $0 \leq i < m$, o índice do \textit{bucket} do elemento na estrutura. A representação comprimida $x'$ é inserida na estrutura no bucket de índice $i$, que emprega o esquema de resolução de colisões, se necessário;
     \item \texttt{QUERY(x)}: aplica-se a função de hashing $H$ para obter $x' = H(x)$, uma representação comprimida de $x$. Então, usa-se a função de hashing $h$ para obter um índice $i = h(x')$, $0 \leq i < m$. Se $x'$ é encontrado no \textit{bucket} de índice $i$, retorna que $x \in S$, senão retorna que $x \notin S$.
 \end{itemize}
+
+Essas dinâmicas são ilustradas na Figura \ref{hash-compaction}.
+
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=10mm, fill=green!30},column sep=-\pgflinewidth, row sep=0.5mm, nodes in empty cells, 
+row 1/.style={nodes={font=\footnotesize,draw=none, fill=none, minimum size=10mm}}}]
+
+          \node[fill=orange!50] (H) {$H(x)$};
+          \node[blue!50!black, right=of H, pin={100:Representação comprimida}] (xComp) {$x'$};
+          \node[fill=teal!50, right=of xComp] (h) {h(x)};
+          \node[right=of h, font=\Large, label={below:índice}, inner sep=0] (i) {$i$};
+          \matrix[right=of i, label={below:Array de \textit{buckets}}, array] (array) {
+        0 & ... & $i$ & ... & $m-1$\\
+          &   &$x'$&   &  \\};
+        
+          \draw[->] (H) -- (xComp);
+          \draw[->] (xComp) -- (h);
+          \draw[<-] (H) -- ++(-2,0) node[below, pos=0.8] {$x$};
+          \draw[->] (h) -- (i) node[above, pos=0.8] {};
+          \draw[->] (i) -- (array) node[above, pos=0.8] {};
+          \draw[decorate, decoration={brace, amplitude=1ex, raise=1.7cm}] (xComp.east) -- node[midway, below=1.9cm] {Compressão} (H.west);
+          \draw[decorate, decoration={brace, amplitude=1ex, raise=1.7cm}] (array.east) -- node[midway, below=1.9cm] {Adição à \textit{hash table}} (h.west);
+        \end{tikzpicture}
+        \caption{\label{hash-compaction} Esquema do funcionamento de um dicionário implementado com \textit{hash compaction}}
+    \end{center}
+\end{figure}
+
+Seja $k$ o comprimento em bits da representação comprimida de $x$ (isto é, $x'$) e $n$ o número de elementos distintos que podem ser representados pela estrutura. Para $k = \log_2{n}$, note que com $k$ bits é possível representar $2^k = n$ elementos distintos. Portanto, para $k \geq \log_2{n}$ não há colisão de representações comprimidas.
+
+Já para os casos em que ocorre colisão, essa estrutura pode retornar resultados falsos positivos. Isto é, um elemento que não faz parte do conjunto representado pode retornar positivo para o teste de membresia por conta da colisão de hashing com outro elemento que pertence à estrutura. O parâmetro $\epsilon \in (0,1)$ representa a probabilidade de ocorrência de resultados desse tipo. Assumindo que cada bit (0 ou 1) seja escolhido com probabilidade $\frac{1}{2}$ pela função de hashing $H(x)$, então é evidente que $\epsilon \leq \frac{1}{2^k}$ (pois há $2^k$ distintas representações comprimidas representáveis).
+
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=8mm, fill=green!30},column sep=-\pgflinewidth, row sep=0.5mm, nodes in empty cells, 
+row 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}, every label/.append style={font=\scriptsize}]
+
+            \matrix[array] (array) {
+        
+          0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 1\\
+          0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15\\};
+          \node[above=of array, font=\Large, inner sep=0] (x) {$x$};
+          \node[right=of x, font=\Large, inner sep=0] (y) {$y$};
+          \node[right=of y, font=\Large, inner sep=0, label={above:Teste de membresia}] (z) {$z$};0
+          
+          \draw[thick,->,draw=red] (x.south) -- (array-1-2.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=red] (x.south) -- (array-1-5.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=red] (x.south) -- (array-1-10.north) node[above, pos=0.8] {};
+
+          \draw[thick,->,draw=blue] (y.south) -- (array-1-5.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=blue] (y.south) -- (array-1-14.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=blue] (y.south) -- (array-1-16.north) node[above, pos=0.8] {};
+
+          \draw[dashed,->] (z.south) -- (array-1-10.north) node[above, pos=0.8] {};
+          \draw[dashed,->] (z.south) -- (array-1-12.north) node[above, pos=0.8] {};
+          \draw[dashed,->] (z.south) -- (array-1-15.north) node[above, pos=0.8] {};
+          \draw[decorate, decoration={brace, amplitude=1ex, raise=0.8cm}] (array.east) -- node[midway, below=1.0cm] {Array de \textit{buckets} ($m=16$)} (array.west);
+        \end{tikzpicture}
+        \caption{\label{bloom-filter} Esquema do funcionamento de um \textit{Bloom filter} com parâmetros $m=16, k=3, n=2$}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=8mm, fill=green!30},column sep=-\pgflinewidth, column sep=0.5mm, nodes in empty cells, 
+column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
+
+            \matrix[array] (array) {
+               $a$ & 0\\
+               $b$ & 1\\
+                & 2\\
+                & 3\\
+                & 4\\
+                $c$ & 5\\
+                $d$ & 6\\
+                $e$ & 7\\
+            };
+          \node[left=of array, inner sep=0] (f) {$f = \texttt{Fingerprint(x)}$};
+          
+          \draw[thick,->] (f.east) -- (array-2-1.west) node[midway, above left] {$i_1$};
+          \draw[thick,->] (f.east) -- (array-8-1.west) node[midway, below left] {$i_2$};
+
+          \draw[dashed,->] (array-6-2.east) to [out=0,in=0, looseness=2] (array-5-2.east);
+          \draw[dashed,->] (array-2-2.east) to [out=0,in=0, looseness=1] coordinate[pos=0.5] (seta) (array-6-2.east);
+
+          \matrix[right=of array, shift={(2cm,0)}, array] (arrayInsert) {
+               $a$ & 0\\
+               $f$ & 1\\
+                & 2\\
+                & 3\\
+                $c$ & 4\\
+                $b$ & 5\\
+                $d$ & 6\\
+                $e$ & 7\\
+            };
+            \draw[thick,shorten <=2pt, ->] (seta.east) -- (arrayInsert.west) node[midway, above] {Inserção};
+        \end{tikzpicture}
+        \caption{\label{cuckoo-filter-insert} Esquema do funcionamento da inserção de um elemento em um \textit{Cuckoo filter}}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=8mm, fill=green!30},column sep=-\pgflinewidth, column sep=0.5mm, nodes in empty cells, 
+column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
+
+            \matrix[array] (array) {
+               $a$ & 0\\
+               $f$ & 1\\
+                & 2\\
+                & 3\\
+                $c$ & 4\\
+                $b$ & 5\\
+                $d$ & 6\\
+                $e$ & 7\\
+            };
+          \node[left=of array, inner sep=0] (f) {$f = \texttt{Fingerprint(x)}$};
+          
+          \draw[thick,->] (f.east) -- (array-2-1.west) node[midway, above left] {$i_1$};
+          \draw[thick,->] (f.east) -- (array-8-1.west) node[midway, below left] {$i_2$};
+
+          \matrix[right=of array, shift={(2cm,0)}, array] (arrayRemove) {
+               $a$ & 0\\
+                & 1\\
+                & 2\\
+                & 3\\
+                $c$ & 4\\
+                $b$ & 5\\
+                $d$ & 6\\
+                $e$ & 7\\
+            };
+            \draw[thick,shorten <=2pt, ->] (array.east) -- (arrayRemove.west) node[midway, above] {Remoção};
+        \end{tikzpicture}
+        \caption{\label{cuckoo-filter-remove} Esquema do funcionamento da remoção de um elemento em um \textit{Cuckoo filter}}
+    \end{center}
+\end{figure}
+
+\section{\textit{Bloom filters}}
+
+
+
+\begin{enumerate}
+    \item  \textbf{Introdução}: criador, objetivos e aplicações vantajosas dessa estrutura de dados (de forma geral);
+    \item Princípio do \textit{Bloom filter};
+    \item Dinâmica de funcionamento (construir figuras), evidenciar a possiblidade de falsos positivos e expor as susposições básicas de movo a evitar alguns casos triviais. \textbf{Limitações:} não permite remoção de elementos;
+    \item Uso de Bloom filter para estimar intersecções (aplicações em BD)
+     com $n$ elementos
+    \item Cálculo da razão de falsos positivos (\textit{false positive rate})
+    \item Cálculo de quantos bits são necessários para representar um conjunto
+    \item Algoritmos
+
+    \begin{algorithm}
+        \caption{Bloom Filter: Inserção (\texttt{Insert})}\label{alg:cap}
+        \Entrada{$x$ - elemento a ser inserido na estrutura}
+
+        \Para{$j \leftarrow 1 \textup{ até } k$}{
+            $i \leftarrow \Call{hash\textsubscript{j}}{x}$ \Comment{Itera sobre todas as $k$ funções de hashing}\\
+            \Se{\texttt{bucket}$[i]$ = 0}{
+                $\texttt{bucket}[i] \leftarrow 1$ \\
+            }
+        }
+    \end{algorithm}
+
+    \begin{algorithm}
+        \caption{Bloom Filter: Consulta (\texttt{Query})}\label{alg:cap}
+        \Entrada{$x$ - elemento a ser consultado na estrutura (teste de membresia)}
+        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento está na estrutura}
+
+        \Para{$j \leftarrow 1 \textup{ até } k$}{
+            $i \leftarrow \Call{hash\textsubscript{j}}{x}$ \\
+            \Se{\texttt{bucket}$[i]$ = 0}{
+                \Retorna{\texttt{Falso}} \\
+            }
+        }
+        \Retorna{\texttt{Verdadeiro}}
+    \end{algorithm}
+   
+    \begin{enumerate}
+    
+        \item Inserção
+        \item Consulta
+        \item Remoção (não há suporte nos \textit{Bloom filters} padrões, usar como motivação para a exposição dos \textit{Cuckoo Filters})
+        
+    \end{enumerate}
+
+    \begin{algorithm}
+        \caption{Cuckoo Filter: Inserção (\texttt{Insert})}\label{alg:cap}
+        \Entrada{$x$ - elemento a ser inserido na estrutura}
+        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento foi inserido na estrutura}
+    
+        $f \leftarrow \Call{fingerprint}{x}$ \\
+        $i_1 \leftarrow \Call{hash}{x}$ \\
+        $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
+        \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada vazia}}{
+            insere $f$ em um bucket com entrada vazia \\
+            \Retorna{\texttt{Verdadeiro}}
+        }
+        $i \leftarrow \textup{escolha aleatória entre } i_1 \textup{ e } i_2$ \\
+        \Para{$n \leftarrow 0 \textup{ até } \texttt{MaxNumRealocações}$}{
+            $e \leftarrow \textup{escolha aleatória de uma entrada de } \texttt{bucket}[i]$ \\
+            troca os conteúdos de $f$ e da entrada $e$ de \texttt{bucket}$[i]$  \Comment{Realoca um elemento}\\
+            $i \leftarrow i \oplus \Call{hash}{f}$ \\
+            \Se{\texttt{bucket}$[i]$ \textup{está vazio}}{
+                insere $f$ em \texttt{bucket}$[i]$ \\
+                \Retorna{\texttt{Verdadeiro}}
+            }
+        }
+        \Retorna{\texttt{Falso}} \Comment{Considera-se que a \textit{hash table} está cheia}
+    \end{algorithm}
+
+    \begin{algorithm}
+        \caption{Cuckoo Filter: Consulta (\texttt{Query})}\label{alg:cap}
+        \Entrada{$x$ - elemento a ser consultado na estrutura (teste de membresia)}
+        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento está na estrutura}
+    
+        $f \leftarrow \Call{fingerprint}{x}$ \\
+        $i_1 \leftarrow \Call{hash}{x}$ \\
+        $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
+        \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada com o conteúdo } $f$}{
+            \Retorna{\texttt{Verdadeiro}}
+        }
+        \Retorna{\texttt{Falso}}
+    \end{algorithm}
+
+    \begin{algorithm}
+        \caption{Cuckoo Filter: Remoção (\texttt{Delete})}\label{alg:cap}
+        \Entrada{$x$ - elemento a ser removido da estrutura}
+        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento foi removido da estrutura}
+    
+        $f \leftarrow \Call{fingerprint}{x}$ \\
+        $i_1 \leftarrow \Call{hash}{x}$ \\
+        $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
+        \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada com o conteúdo } $f$}{
+            remove o conteúdo de uma entrada que contém $f$ \\
+            \Retorna{\texttt{Verdadeiro}}
+        }
+        \Retorna{\texttt{Falso}}
+    \end{algorithm}
+\end{enumerate}
+
+\section{\textit{Cuckoo filters}}
+
+\begin{enumerate}
+    \item \textbf{Introdução}: objetivos e vantagens sobre Bloom filters;
+    \item \textit{Cuckoo Hash Tables}: resultados das análises matemáticas;
+    \item hashing de chave parcial
+   
+    \begin{enumerate}
+    
+        \item Inserção
+        \item Consulta
+        \item Remoção
+        
+    \end{enumerate}
+\end{enumerate}
+
+\clearpage
+
+\nocite{*}
+\printbibliography[
+  title=\refname\label{bibliografia}, % "Referências", recomendado pela ABNT
+  %title=\bibname\label{bibliografia}, % "Bibliografia"
+]
 
 \end{document}
