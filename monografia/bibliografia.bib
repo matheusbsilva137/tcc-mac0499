@@ -4,7 +4,7 @@
   year={2014}
 }
 
-@inproceedings{10.1145/2674005.2674994,
+@inproceedings{cuckoo,
 author = {Fan, Bin and Andersen, Dave G. and Kaminsky, Michael and Mitzenmacher, Michael D.},
 title = {Cuckoo Filter: Practically Better Than Bloom},
 year = {2014},
@@ -22,7 +22,7 @@ location = {Sydney, Australia},
 series = {CoNEXT '14}
 }
 
-@ARTICLE{5751342,  author={Tarkoma, Sasu and Rothenberg, Christian Esteve and Lagerspetz, Eemil},  journal={IEEE Communications Surveys & Tutorials},   title={Theory and Practice of Bloom Filters for Distributed Systems},   year={2012},  volume={14},  number={1},  pages={131-155},  doi={10.1109/SURV.2011.031611.00024}}
+@ARTICLE{5751342,  author={Tarkoma, Sasu and Rothenberg, Christian Esteve and Lagerspetz, Eemil},  journal={IEEE Communications Surveys \& Tutorials},   title={Theory and Practice of Bloom Filters for Distributed Systems},   year={2012},  volume={14},  number={1},  pages={131-155},  doi={10.1109/SURV.2011.031611.00024}}
 
 @Article{Mosharraf2022,
 author={Mosharraf, Sharafat Ibn Mollah
@@ -41,3 +41,49 @@ doi={10.1186/s40537-022-00563-w},
 url={https://doi.org/10.1186/s40537-022-00563-w}
 }
 
+@article{bloom,
+author = {Bloom, Burton H.},
+title = {Space/Time Trade-Offs in Hash Coding with Allowable Errors},
+year = {1970},
+issue_date = {July 1970},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {13},
+number = {7},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/362686.362692},
+doi = {10.1145/362686.362692},
+abstract = {In this paper trade-offs among certain computational factors in hash coding are analyzed. The paradigm problem considered is that of testing a series of messages one-by-one for membership in a given set of messages. Two new hash-coding methods are examined and compared with a particular conventional hash-coding method. The computational factors considered are the size of the hash area (space), the time required to identify a message as a nonmember of the given set (reject time), and an allowable error frequency.The new methods are intended to reduce the amount of space required to contain the hash-coded information from that associated with conventional methods. The reduction in space is accomplished by exploiting the possibility that a small fraction of errors of commission may be tolerable in some applications, in particular, applications in which a large amount of data is involved and a core resident hash area is consequently not feasible using conventional methods.In such applications, it is envisaged that overall performance could be improved by using a smaller core resident hash area in conjunction with the new methods and, when necessary, by using some secondary and perhaps time-consuming test to “catch” the small fraction of errors associated with the new methods. An example is discussed which illustrates possible areas of application for the new methods.Analysis of the paradigm problem demonstrates that allowing a small number of test messages to be falsely identified as members of the given set will permit a much smaller hash area to be used without increasing reject time.},
+journal = {Commun. ACM},
+month = {jul},
+pages = {422–426},
+numpages = {5},
+keywords = {storage layout, hash addressing, storage efficiency, retrieval trade-offs, hash coding, scatter storage, retrieval efficiency, searching}
+}
+
+@article{broder-mitz,
+author = {Broder, Andrei and Mitzenmacher, Michael},
+year = {2003},
+month = {11},
+pages = {},
+title = {Survey: Network Applications of Bloom Filters: A Survey.},
+volume = {1},
+journal = {Internet Mathematics},
+doi = {10.1080/15427951.2004.10129096}
+}
+
+@inproceedings{vahdat,
+author = {Reynolds, Patrick and Vahdat, Amin},
+title = {Efficient Peer-to-Peer Keyword Searching},
+year = {2003},
+isbn = {3540403175},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+abstract = {The recent file storage applications built on top of peer-to-peer distributed hash tables lack search capabilities. We believe that search is an important part of any document publication system. To that end, we have designed and analyzed a distributed search engine based on a distributed hash table. Our simulation results predict that our search engine can answer an average query in under one second, using under one kilobyte of bandwidth.},
+booktitle = {Proceedings of the ACM/IFIP/USENIX 2003 International Conference on Middleware},
+pages = {21–40},
+numpages = {20},
+keywords = {peer-to-peer, caching, distributed hash table, Bloom filter, search},
+location = {Rio de Janeiro, Brazil},
+series = {Middleware '03}
+}

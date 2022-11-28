@@ -93,6 +93,7 @@
   %style=abnt,
 ]{biblatex}
 
+\setcounter{tocdepth}{3}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METADADOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -113,7 +114,7 @@
 % definidos, pois além de serem utilizados para criar a capa (com o comando
 % \maketitle), também são armazenados nos metadados do PDF. O estilo padrão
 % de diversos periódicos exige também outros dados, como email, filiação etc.
-\title{Estudo do efeito de variações de Bloom filters no desempenho de consultas no banco de dados Apache Cassandra}
+\title{Estudo do efeito de variações de \textit{Bloom filters} no desempenho de algoritmos de hifenização de palavras}
 \author{
   Matheus Barbosa Silva\thanks{Instituto de Matemática e Estatística da Universidade de São Paulo}
 }
@@ -154,17 +155,11 @@
 
 \section{Introdução}
 
-Se você precisa criar um texto relativamente curto, como um artigo ou
-um trabalho de disciplina, este modelo pode servir como base. Observe,
-no entanto, que periódicos em geral nas áreas de matemática e computação
-costumam ter seus próprios modelos \LaTeX{} (como é o caso da
-SBC\nocite{sbctemplate});
-nesses casos, é melhor utilizá-los e apenas consultar este modelo para
-verificar como usar algum recurso específico. Fique atento: alguns modelos
-antigos ou de periódicos internacionais podem usar \textsf{latin1} ao
-invés de \textsf{utf8} ou mesmo não ter configuração pré-definida para
-caracteres acentuados. Além disso, eles muito frequentemente utilizam
-bibtex ao invés de biblatex para a geração automática da bibliografia.
+Texto
+
+\newpage
+
+\tableofcontents
 
 \newpage
 
@@ -280,6 +275,36 @@ Seja $k$ o comprimento em bits da representação comprimida de $x$ (isto é, $x
 
 Já para os casos em que ocorre colisão, essa estrutura pode retornar resultados falsos positivos. Isto é, um elemento que não faz parte do conjunto representado pode retornar positivo para o teste de membresia por conta da colisão de hashing com outro elemento que pertence à estrutura. O parâmetro $\epsilon \in (0,1)$ representa a probabilidade de ocorrência de resultados desse tipo. Assumindo que cada bit (0 ou 1) seja escolhido com probabilidade $\frac{1}{2}$ pela função de hashing $H(x)$, então é evidente que $\epsilon \leq \frac{1}{2^k}$ (pois há $2^k$ distintas representações comprimidas representáveis).
 
+\newpage
+
+\section{\textit{Bloom filters}}
+
+O \textit{Bloom filter}, estrutura de dados aleatorizada concebida por \citet{bloom}, tem o objetivo de responder a testes de membresia com \textbf{eficiência no consumo de espaço} (assim como os dicionários completos implementados com \textit{hash conmpaction}). Essa estrutura permite representar os elementos de um conjunto de forma compacta com o custo de resultados \textbf{falsos positivos} -- quando a estrutura responde que um elemento é membro do conjunto, quando de fato não é -- que variam de acordo com o tamanho escolhido para o filtro.
+
+Dada a possibilidade de ocorrência de resultados falsos positivos, o \textit{Bloom filter} é uma estrutura de dados especialmente adequada para cenários em que os métodos convencionais (não probabilísticos, livres de erros) para responder a testes de membresia demandem uma quantidade impraticável de espaço. Ademais, \citet{bloom} sugere o uso dessa estrutura para aplicações em que a grande maioria dos elementos testados não fazem parte do conjunto representado pela estrutura (isto é, resultados negativos).
+
+Define-se \textbf{tempo de rejeição} como o tempo médio dispendido por uma estrutura de dados para decidir que um dado elemento não pertence ao conjunto representado. De fato, o \textit{Bloom filter} permite diminuir o consumo de espaço sem acrescer o tempo de rejeição, o que ocorre com o custo de resultados falsos positivos e impossibilidade de remoção de elementos da estrutura (ainda que existam estruturas derivadas do \textit{Bloom filter}, como o \textit{counting Bloom filter}, que permitem remoções de elementos). A aplicação de um \textit{Bloom filter} é vantajosa quando o \textbf{princípio do \textit{Bloom filter}} é atendido:
+
+\begin{quote}
+Onde quer que seja usada uma lista ou conjunto e o espaço seja valioso, considere usar um \textit{Bloom filter} se o efeito de falsos positivos puder ser mitigado. \citep[tradução nossa]{broder-mitz}
+\end{quote}
+
+Logo, essa é uma estrutura adequada para cenários em que são permitidos erros nas respostas dos testes de membresia. O processo de \textbf{hifenização} de palavras é um desses cenários e, especialmente, um clássico exemplo de aplicação de \textit{Bloom filters}. Para cada idioma são definidas regras fixas de hifenização que podem ser aplicadas a qualquer palavra. No entanto, podem existir exceções às regras, o que demanda a busca pontual da hifenização de algumas palavras no dicionário.
+
+Nesse cenário, um \textit{Bloom filter} pode ser utilizado para representar o conjunto de palavras que demandam buscas no dicionário. Assim, um resultado falso positivo corresponde a uma palavra cuja hifenização pode ser obtida pelas regras, mas foi erroneamente classificada como uma exceção. Nesse caso, a palavra não seria encontrada no dicionário (já que não é uma exceção) e, em seguida, seria hifenizada pelas regras. De todo modo são evitados acessos desnecessários ao dicionário e, dado o número pequeno de exceções, usualmente a maior parte das palavras não faz parte do filtro.
+
+\subsection{Definição}
+
+Um \textit{Bloom filter} é descrito pelos parâmetros seguintes:
+
+\begin{itemize}
+    \item Seja $S = \{ x_1, x_2, \dots, x_n \}$ o conjunto de $n$ elementos representado pela estrutura;
+    \item Seja $m$ o comprimento em bits do vetor utilizado pelo filtro para representar o conjunto (inicialmente com todos os $m$ bits são zerados);
+    \item Seja $k$ a quantidade de funções de \textit{hashing} \textbf{universais} independentes ($h_1, \dots, h_k$) utilizadas pelo filtro, $h_i: \mathcal{U} \to [0, m-1], \forall i \in [1, k]$. Uma função de \textit{hashing} universal deve mapear as entradas uniformemente no conjunto de saída;
+\end{itemize}
+
+Para a \textbf{inserção} de um dado elemento $x$ na estrutura, todos os bits de índices $h_i(x), \forall i \in [1,k]$ recebem o valor 1. Assim, a resposta para um teste de membresia de um dado elemento $z$ é obtida a partir da verificação dos bits de índices $h_i(x), \forall i \in [1,k]$. Caso algum dos $k$ bits examinados contenha o valor 0, então a estrutura responde que o elemento mão está no conjunto representado (resposta negativa). Isto é, algum dos bits examinados contém o valor 0 \textbf{se e somente se} o elemento consultado não pertence ao filtro. O esquema do funcionamento da inserção de elementos e dos testes de membresia são apresentados na Figura \ref{bloom-filter}.
+
 \begin{figure}
     \begin{center}
         \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=8mm, fill=green!30},column sep=-\pgflinewidth, row sep=0.5mm, nodes in empty cells, 
@@ -304,11 +329,229 @@ row 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}, every
           \draw[dashed,->] (z.south) -- (array-1-10.north) node[above, pos=0.8] {};
           \draw[dashed,->] (z.south) -- (array-1-12.north) node[above, pos=0.8] {};
           \draw[dashed,->] (z.south) -- (array-1-15.north) node[above, pos=0.8] {};
-          \draw[decorate, decoration={brace, amplitude=1ex, raise=0.8cm}] (array.east) -- node[midway, below=1.0cm] {Array de \textit{buckets} ($m=16$)} (array.west);
+          \draw[decorate, decoration={brace, amplitude=1ex, raise=0.8cm}] (array.east) -- node[midway, below=1.0cm] {Array de bits ($m=16$)} (array.west);
         \end{tikzpicture}
-        \caption{\label{bloom-filter} Esquema do funcionamento de um \textit{Bloom filter} com parâmetros $m=16, k=3, n=2$}
+        \caption{\label{bloom-filter} Esquema do funcionamento de um \textit{Bloom filter} com parâmetros $m=16, k=3, n=2, S = \{x, y\}$ com teste de membresia do elemento $z$ que não pertence à estrutura}
     \end{center}
 \end{figure}
+
+Já quando todos os $k$ bits examinados para um dado elemento são iguais a $1$, a estrutura assume que o elemento pertence ao conjunto representado (resposta positiva). Ainda assim, essa classificação é feita com uma probabilidade de erro, dado que essa estrutura admite resultados falsos positivos. Um exemplo de resultado falso positivo é dado na Figura \ref{bloom-filter-false-positive}.
+
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=8mm, fill=green!30},column sep=-\pgflinewidth, row sep=0.5mm, nodes in empty cells, 
+row 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}, every label/.append style={font=\scriptsize}]
+
+            \matrix[array] (array) {
+        
+          0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 1\\
+          0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15\\};
+          \node[above=of array, font=\Large, inner sep=0] (x) {$x$};
+          \node[right=of x, font=\Large, inner sep=0] (y) {$y$};
+          \node[right=of y, font=\Large, inner sep=0, label={above:Falso positivo}] (w) {$w$};0
+          
+          \draw[thick,->,draw=red] (x.south) -- (array-1-2.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=red] (x.south) -- (array-1-5.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=red] (x.south) -- (array-1-10.north) node[above, pos=0.8] {};
+
+          \draw[thick,->,draw=blue] (y.south) -- (array-1-5.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=blue] (y.south) -- (array-1-14.north) node[above, pos=0.8] {};
+          \draw[thick,->,draw=blue] (y.south) -- (array-1-16.north) node[above, pos=0.8] {};
+
+          \draw[dashed,->] (w.south) -- (array-1-10.north) node[above, pos=0.8] {};
+          \draw[dashed,->] (w.south) -- (array-1-14.north) node[above, pos=0.8] {};
+          \draw[dashed,->] (w.south) -- (array-1-16.north) node[above, pos=0.8] {};
+          \draw[decorate, decoration={brace, amplitude=1ex, raise=0.8cm}] (array.east) -- node[midway, below=1.0cm] {Array de bits ($m=16$)} (array.west);
+        \end{tikzpicture}
+        \caption{\label{bloom-filter-false-positive} Esquema do funcionamento de um \textit{Bloom filter} com parâmetros $m=16, k=3, n=2, S = \{x, y\}$ com resultado falso positivo para o teste de membresia do elemento $w$ que não pertence à estrutura}
+    \end{center}
+\end{figure}
+
+\subsection{Razão de falsos positivos}
+
+O cálculo da razão de falsos positivos em um \textit{Bloom filter} é realizado a partir da supoosição de que $kn < m$, de modo que sejam evitados os casos triviais em que cada um dos $n$ elementos do conjunto $S$ possam ser mapeados para $k$ bits distintos do vetor de bits. Ademais, sem perda de generalização, assuma que todos os elementos de $S$ estão inseridos na estrutura.
+
+Assim, nesse cenário, seja $p'$ a probabilidade de que um dado bit do vetor esteja zerado. Dada a suposição de que as funções de \textit{hashing} escolhidas são universais, então para cada função, um bit recebe o valor 1 com probabilidade $1/m$. Com a inserção de $n$ elementos, cada um mapeado com $k$ funções de \textit{hashing}, segue que $$p' = \left( 1 - \frac{1}{m}\right)^{kn} \approx e^{-kn/m}.$$
+
+Tome $p = e^{-kn/m}$ uma aproximação para $p'$. A ocorrência de um resultado falso positivo demanda que os $k$ bits examinados sejam iguais a 1, logo requer $k$ repetições do evento com probabilidade complementar a $p$. Portanto, um resultado falso positivo ocorre aproximadamente com probabilidade $$\left( 1 - e^{-kn/m} \right)^{k} = (1-p)^k.$$
+
+Suponha que $m$ e $n$ são dados, então deseja-se obter um valor ótimo para $k$ de modo que a razão de resultados falsos positivos $(1-p)^k$ seja minimizada. Seja $$f(k) = \exp\left(k\ln(1-e^{-kn/m})\right)$$ uma função de $k$ para a razão de falsos positivos (isto é, $(1-p)^k$ escrita de forma conveniente). Obtém-se que um mínimo global para essa função ocorre com $k = \ln 2 \cdot (m/n)$ de modo que, nesse caso, $$f(k) = (1/2)^k \approx (0.6185)^{m/n}.$$
+
+Dado que $k \in \mathbb{N}$, escolhe-se $k = \lfloor \ln 2 \cdot (m/n) \rfloor$ de modo a minimizar o número de funções de \textit{hashing} utilizadas. No entanto, note que a determinação de um valor ótimo para o parâmetro $k$ só é possível quando se conhece ou se projeta de antemão a quantidade de elementos que devem ser representados pela estrutura.
+
+\subsection{Comprimento mínimo do filtro}
+
+Dada uma razão de resultados falsos positivos $\epsilon$, deseja-se obter $m$ mínimo (o comprimento mínimo do vetor de bits do filtro) de modo a permitir resultados falsos positivos para, no máximo, uma fração $\epsilon$ de $\mathcal{U}$. Seja $u = |\mathcal{U}|$ e $n = |S|$, então o filtro deve ser capaz de identificar cada um dos $\binom{u}{n}$ conjuntos $S$ distintos.
+
+Seja $s = F(S)$ a sequência de bits para o qual o conjunto $S$ é mapeado por um dado \textit{Bloom filter}. Diz-se que $s$ \textbf{aceita} um dado elemento $x \in \mathcal{U}$ se $s$ é a sequência de bits associada a um conjunto $S$ tal que $x \in S$. É evidente que toda sequência $s$ aceita todos os elementos de $S$, mas também pode aceitar outros $\epsilon(u-n)$ elementos que fazem parte de $\mathcal{U}$, mas não estão no conjunto $S$ de modo que a razão de falsos positivos seja, no máximo, igual a $\epsilon$.
+
+Portanto, cada sequência $s$ deve representar, no máximo, $n + \epsilon(u-n)$ elementos de $\mathcal{U}$. Em especial, uma sequência $s$ pode representar qualquer um dos $\binom{n + \epsilon(u - n)}{n}$ subconjuntos de $S$. Dado que $m$ é o tamanho (fixo) da sequência de bits, então há $2^m$ sequências distintas de $m$ bits que devem representar $\binom{u}{n}$ conjuntos distintos. Em especial, deve valer que $$2^m \binom{n + \epsilon(u - n)}{n} \geq \binom{u}{n}.$$
+
+A partir dessa desigualdade, obtém-se um limite inferior para o o comprimento do vetor de bits de modo que a razão de falsos positivos não ultrapasse $\epsilon$. É necessário que $m$ atenda a desigualdade $$m \geq n \frac{\log_2(1/\epsilon)}{\ln 2} = n\log_2{e} \cdot \log_2{(1/\epsilon)}.$$
+
+\subsection{Algoritmos}
+
+Um \textit{Bloom filter} permite realizar operações de inserção e consulta de elementos.
+
+\subsubsection{Inserção}
+
+O procedimento para a inserção de um elemento em um \textit{Bloom filter} é descrito no Algoritmo \ref{alg:bf-ins}, que itera sobre as $k$ funções de \textit{hashing}  e pode alterar o valor de uma posição do vetor de bits a cada iteração (logo consome tempo $\Theta(k)$).
+
+\begin{algorithm}
+    \caption{Bloom Filter: Inserção (\texttt{Insert})}\label{alg:bf-ins}
+    \Entrada{$x$ - elemento a ser inserido na estrutura}
+
+    \Para{$j \leftarrow 1 \textup{ até } k$}{
+        $i \leftarrow \Call{hash\textsubscript{j}}{x}$ \Comment{Itera sobre todas as $k$ funções de hashing}\\
+        \Se{\texttt{bits}$[i]$ = 0}{
+            $\texttt{bits}[i] \leftarrow 1$ \\
+        }
+    }
+\end{algorithm}
+
+\subsubsection{Consulta}
+
+O Algoritmo \ref{alg:bf-cons} descreve o processo necessário para responder a testes de membresia em um \textit{Bloom filter}. Para isso, basta verificar se os $k$ bits indexados pelos resultados das funções de \textit{hashing} contêm o valor 1 (o algoritmo itera sobre as $k$ funções de \textit{hashing}, logo consome tempo $\Theta(k)$).
+
+\begin{algorithm}
+    \caption{Bloom Filter: Consulta (\texttt{Query})}\label{alg:bf-cons}
+    \Entrada{$x$ - elemento a ser consultado na estrutura (teste de membresia)}
+    \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento está na estrutura}
+
+    \Para{$j \leftarrow 1 \textup{ até } k$}{
+        $i \leftarrow \Call{hash\textsubscript{j}}{x}$ \\
+        \Se{\texttt{bits}$[i]$ = 0}{
+            \Retorna{\texttt{Falso}} \\
+        }
+    }
+    \Retorna{\texttt{Verdadeiro}}
+\end{algorithm}
+
+\subsection{Aplicações}
+
+De acordo com \citet{bloom}, a aplicação de \textit{Bloom filters} é vantajosa em cenários onde a grande maioria dos elementos consultados (nos testes de membresia) não fazem parte do conjunto representado pela estrutura. A seguir são dados alguns cenários convenientes para a aplicação dessa estrutura.
+
+\subsubsection{Hifenização de palavras}
+
+A aplicação de \textit{Bloom filters} em algoritmos de hifenização de palavras foi originalmente citada e analisada por \citet{bloom}. O processo de hifenização funciona a partir da análise de regras e exceções definidas para cada linguagem. O grupo de exceções, para cada idioma, compreende um grupo de palavras cujas hifenizações não podem ser obtidas de acordo com as regras usuais. Portanto, as hifenizações de palavras desse grupo são armazenadas em algum tipo de armazenamento persistente.
+
+Evidentemente, o grupo de exceções representa apenas uma pequena porção do total de palavras um uma dada linguagem. Nesse cenário, \citet{bloom} sugere que apenas as exceções sejam inseridas em um \textit{Bloom filter}, de modo que apenas as palavras encontradas no filtro sejam buscadas no armazenamento. Assim, um resultado falso positivo (palavra cuja hifenização pode ser obtida pelas regras, mas é classificada como uma exceção) resultaria na busca de uma palavra no armazenamento, o que não retornaria resultados e, então, obtém-se a hifenização a partir das regras usuais. 
+
+\subsubsection{Bancos de dados distribuídos}
+
+Em bancos de dados distribuídos, os dados não são centralizados e armazenados em um único local, mas sim repartidos em diversos nós que se intercomunicam. Essa estratégia é especialmente conveniente para o gerenciamento de grandes volumes de dados, já que é possível acrescer nós quando necessário e, consequentemente, aumentar a capacidade de armazenamento de dados do sistema, assim como mitigar falhas em um nó.
+
+O uso de \textit{Bloom filters} em bancos de dados distribuídos permite reduzir o tráfego de dados na rede. De fato, já que os dados não são centralizados, a resposta para uma consulta pode demandar informações de vários nós. Se um nó $A$ precisa de informações de um nó $B$ para responder a uma consulta, então o nó $A$ pode receber um \textit{Bloom filter} com os dados do nó $B$ inseridos (o que diminui o tráfego de dados na rede, já que essa é uma representação comprimida dos dados de $B$) no lugar de uma cópia completa dos dados. Ao fim do processamento, o nó $A$ pode enviar o resultado da consulta para o nó $B$ de modo que falsos positivos possam ser removidos.
+
+\subsubsection{Estimação da diferença entre conjuntos}
+
+\textit{Bloom filters} também podem ser utilizados na transmissão de dados em aplicações \textit{peer-to-peer}. Dados dois pares $A$ e $B$ que armazenam os conjuntos $S_A$ e $S_B$, respectivamente, suponha que $B$ requer os dados de $S_A$ que ainda não estão em $S_B$ (isto é, $S_A - S_B$).
+
+É possível realizar essa troca de informações a partir do envio de um \textit{Bloom filter} com os elementos de $S_B$ para o par $A$. Assim, $A$ pode verificar quais de seus elementos não estão em $B$ (de acordo com os testes de membresia do filtro) e transmiti-los para $B$. Note que, dada a possibilidade de ocorrência de resultados falsos positivos, alguns elementos que pertencem a $S_A - S_B$ podem não ser enviados para $B$.
+
+\subsubsection{Estimação da intersecção de conjuntos}
+
+O uso de \textit{Bloom filters} para determinar intersecções entre conjuntos é proposto por \citet{vahdat} e assemelha-se à técnica utilizada para estimar a diferença entre conjuntos. Dados dois pares $A$ e $B$ que armazenam os conjuntos $S_A$ e $S_B$, respectivamente, suponha que $B$ requer os dados de $S_A$ que também estão em $S_B$ (isto é, $S_A \cap S_B$).
+
+Uma aproximação para os elementos da interseção de $S_A$ e $S_B$ pode ser obtida a partir do envio de um \textit{Bloom filter} com os elementos de $S_B$ para $A$, o que diminui o uso da rede. Assim, $A$ realiza testes de membresia com o filtro de $S_B$ para determinar quais elementos de $S_A$ também estão em $S_B$ de acordo com o filtro e envia-os de volta a $B$. Dada a possibilidade de ocorrência de resultados falsos positivos, alguns elementos que não pertencem a $S_B$ podem ser enviados para $B$ como resultado de $S_A \cap S_B$. Ainda assim, $B$ pode testar cada um dos elementos do resultado de modo a eliminar aqueles que não pertencem a $S_B$, se necessário.
+
+\subsubsection{Protocolos de roteamento}
+
+Dada uma rede de nós em formato de \textbf{árvore radicada} onde cada nó detém uma lista de recursos, suponha que uma requisição por um recurso pode partir de qualquer nó dessa árvore. Cada nó deve ser capaz de responder se detém um recurso ou se é possível obtê-lo por algum de seus descendentes (assim como deve informar a lista de recursos de cada um de seus filhos). Assim, é possível decidir se uma requisição que navega por um dado nó encontrou o recurso ou se deve acessar um filho do nó ou subir um nível na árvore.
+
+Nesse cenário, \textit{Bloom filters} podem ser utilizados para representar as listas de recursos de cada nó. De fato, essa estrutura é especialmente vantajosa para aplicações desse tipo pois as listas de recursos dos filhos de um nó podem ser combinadas por meio de disjunções entre os binários que representam as listas de recursos de cada filho. Isto é, se $A$ é o nó pai de $B$ e $C$, cujas representações binárias por meio de \textit{Bloom filters} são dadas por $b$ e $c$, respectivamente, então a lista de recursos dos filhos de $A$ é $b \lor c$ (ainda ocorrem apenas resultados falsos positivos, e não falsos negativos).
+
+O \textbf{roteamento geográfico} é uma possível aplicação desse tipo de protocolo. Suponha que se deseja estabelecer um protocolo de trocas de mensagens para dispositivos móveis distribuídos em uma dada uma região quadrada de um espaço geográfico qualquer. Esse espaço é subdividido recursivamente em quatro quadrados de mesma área, o que resulta em vários níveis de hierarquia, como em uma árvore radicada.
+
+Cada quadrado armazena um \textit{Bloom filter} que deve representar o conjunto de dispositivos acessíveis por algum de seus filhos (subdivisões) ou irmãos (demais três quadrados). Assim, uma mensagem que parte de uma origem qualquer pode navegar pela árvore por meio de consultas aos filtros até que chegue à região de destino.
+
+\newpage
+
+\section{\textit{Cuckoo filters}}
+
+O \textit{cuckoo filter}, descrito por \citet{cuckoo}, é proposto como uma alternativa ao \textit{Bloom filter} tradicional para os cenários em que a remoção de elementos da estrutura é necessária. Para isso, utiliza-se o \textbf{\textit{cuckoo hashing}} como um modo de construção do filtro, o que permite que elementos sejam removidos sem que seja necessário usar espaço adicional, como ocorre nos \textit{counting Bloom filters}.
+
+Há outras alternativas para os \textit{Bloom filters} que permitem remoções de elementos (como os \textit{counting Bloom filters} e \textit{quotient filters}), mas que em contrapartida podem demandar espaço adicional para que se obtenha a mesma razão de falsos positivos de um \textit{Bloom filter} tradicional. Ademais, as execuções de testes de membresia nessas estruturas têm, usualmente, desempenho inferior ao apresentado nos \textit{Bloom filters}.
+
+Destacam-se algumas vantagens do \textit{cuckoo filter} sobre o \textit{Bloom filter} tradicional e outros filtros que permitem remoções de elementos:
+
+\begin{quote}
+    \begin{itemize}
+        \item Permite adicionar e remover itens dinamicamente;
+        \item Fornece melhor desempenho de consultas do que o \textit{Bloom filter} tradicional, mesmo quando está quase cheio (com 95\% do espaço utilizado, por exemplo);
+        \item É mais fácil de implementar do que alternativas como o \textit{quotient filter};
+        \item Usa menos espaço que os \textit{Bloom filters} em muitas aplicações práticas se a razão de falsos positivos $\epsilon$ alvo é menor que 3\%. \citep[tradução nossa]{cuckoo}
+    \end{itemize}
+\end{quote}
+
+\subsection{\textit{Cuckoo hash tables}}
+
+Uma \textit{cuckoo hash table} é um tipo especial de \textit{hash table} que insere e remove elementos da estrutura usando a técnica de \textit{cuckoo hashing}. Essa estrutura é composta por um vetor de \textit{buckets} e duas funções de \textit{hashing} $h_1(x)$ e $h_2(x)$ que mapeiam um dado elemento $x$ para dois \textit{buckets} da estrutura. Um \textit{bucket} pode ser uma estrutura capaz de armazenar um ou mais elementos (como um vetor), de modo que o funcionamento da estrutura é, essencialmente, o mesmo em qualquer caso.
+
+\subsubsection{Inserção}
+
+Caso algum dos dois \textit{buckets} de índices dados pelas funções de \textit{hashing} tenha espaço para um novo elemento, $x$ é inserido no \textit{bucket} disponível. Caso contrário, seleciona-se um dos dois \textit{buckets} e $x$ toma o lugar de um elemento anteriormente inserido. Nesse cenário, o elemento removido é \textbf{realocado}: o processo de inserção é executado novamente com o elemento removido. Realizam-se realocações sucessivas até que seja encontrado um \textit{bucket} disponível (onde nenhum elemento precisa ser realocado) ou até que seja atingido um limite de realocações, onde a estrutura é considerada muito cheia para comportar o novo elemento.
+
+Esse procedimento corresponde ao típico comando \texttt{INSERT(x)} das \textit{hash tables} convencionais. A Figura \ref{cuckoo-hash-table-insert} demonstra o processo de inserção de um elemento $x$ em uma \textit{cuckoo hash table}. Note que os dois \textit{buckets} de $x$ estão ocupados, então $x$ é inserido no \textit{bucket} de índice 1 e o elemento $b$ é realocado para o \textit{bucket} de índice 5. Como o \textit{bucket} de índice 5 está ocupado, $c$ é realocado para a posição 4, que está vazia -- o que encerra o processo de inserção de $x$.
+
+\begin{figure}
+    \begin{center}
+        \begin{tikzpicture}[array/.style={matrix of nodes,nodes={anchor=center, draw, minimum size=8mm, fill=green!30},column sep=-\pgflinewidth, column sep=0.5mm, nodes in empty cells, 
+column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
+
+            \matrix[array] (array) {
+               $a$ & 0\\
+               $b$ & 1\\
+                & 2\\
+                & 3\\
+                & 4\\
+                $c$ & 5\\
+                $d$ & 6\\
+                $e$ & 7\\
+            };
+          \node[left=of array, inner sep=0] (f) {$x$};
+          
+          \draw[thick,->] (f.east) -- (array-2-1.west) node[midway, above left] {$i_1 = h_1(x)$};
+          \draw[thick,->] (f.east) -- (array-8-1.west) node[midway, below left] {$i_2 = h_2(x)$};
+
+          \draw[dashed,->] (array-6-2.east) to [out=0,in=0, looseness=2] (array-5-2.east);
+          \draw[dashed,->] (array-2-2.east) to [out=0,in=0, looseness=1] coordinate[pos=0.5] (seta) (array-6-2.east);
+
+          \matrix[right=of array, shift={(2cm,0)}, array] (arrayInsert) {
+               $a$ & 0\\
+               $x$ & 1\\
+                & 2\\
+                & 3\\
+                $c$ & 4\\
+                $b$ & 5\\
+                $d$ & 6\\
+                $e$ & 7\\
+            };
+            \draw[thick,shorten <=2pt, ->] (seta.east) -- (arrayInsert.west) node[midway, above] {Inserção};
+        \end{tikzpicture}
+        \caption{\label{cuckoo-hash-table-insert} Esquema do funcionamento da inserção de um elemento em uma \textit{cuckoo hash table}}
+    \end{center}
+\end{figure}
+
+Deste modo, todo elemento inserido na estrutura sempre está em algum dos dois \textit{buckets} de índices dados pelas funções de \textit{hashing}. Apesar do custo das realocações de elementos, \textbf{o tempo amortizado das inserções é $O(1)$}, de acordo com \citet{cuckoo}.
+
+\subsubsection{Consulta}
+
+O comando \texttt{QUERY(x)} é aplicado a partir da verificação dos dois \textit{buckets} de índices $i_1 = h_1(x)$ e $i_2 = h_2(x)$. O resultado da consulta é positivo caso o elemento seja encontrado em algum dos dois \textit{buckets}, ou negativo caso contrário.
+
+\subsubsection{Remoção}
+
+Dado que um elemento sempre deve estar em algum dos dois \textit{buckets} indicados pelas funções de \textit{hashing}, uma remoção \texttt{REMOVE(x)} demanda apenas a verificação e exclusão de $x$ de um dos dois \textit{buckets}.
+
+\subsection{Definição}
+
+Um \textit{cuckoo filter} é uma versão compacta de uma \textit{cuckoo hash table} que deve armazenar \textbf{\textit{fingerprints}} no lugar de elementos. \textit{Fingerprints} são sequências de bits associadas a um elemento a partir de uma função de \textit{hashing}. O comprimento dessa sequência de bits é determinado de acordo com a razão de falsos positivos $\epsilon$, dado que podem ocorrer colisões nesse processo de compressão. Cada entrada dos \textit{buckets} da estrutura devem comportar \textit{fingerprints} do comprimento escolhido.
+
+Um fator relevante na construção de \textit{cuckoo filters} é a escolha de uma posição alternativa para cada elemento dado (isto é, a definição de $h_2(x)$). O \textit{partial-key cuckoo hashing} é proposto por \citet{cuckoo} como uma forma de obter uma alto nível ocupação da tabela, o que evita falhas na execução de inserções. Seja $f= \texttt{fingerprint}(x)$ e dada uma função de \textit{hashing} $h(x)$, então a técnica de \textit{partial-key cuckoo hashing} propõe que as funções de hashing escolhidas sejam:  $$h_1(x) = h(x),$$ $$h_2(x) = h_1(x) \oplus h(f).$$
+
+A operação $\oplus$ é especialmente importante para assegurar que a partir de uma \textit{fingerprint} $f$ é possível obter o valor de $h_1(x)$ mesmo sem que o valor de $x$ seja armazenado separadamente. Dado que um \textit{fingerprint} $f$ está armazenado em uma posição $i$, sua posição alternativa $j$ pode ser facilmente obtida: $j = i \oplus h(f)$. De fato, se $f$ está armazenado em $h_2(x)$, então $h_2(x) \oplus h(f) = h_1(x) \oplus h(f) \oplus h(f) = h_1(x)$ e se $f$ está armazenado em $h_1(x)$, segue que $h_1(x) \oplus h(f) = h_2(x)$ da definição.
+
+O esquema do funcionamento da inserção de um elemento em um \textit{cuckoo filter} com a técnica de \textit{partial-key cuckoo hashing} é apresentada na Figura \ref{cuckoo-filter-insert}.
 
 \begin{figure}
     \begin{center}
@@ -327,8 +570,8 @@ column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
             };
           \node[left=of array, inner sep=0] (f) {$f = \texttt{Fingerprint(x)}$};
           
-          \draw[thick,->] (f.east) -- (array-2-1.west) node[midway, above left] {$i_1$};
-          \draw[thick,->] (f.east) -- (array-8-1.west) node[midway, below left] {$i_2$};
+          \draw[thick,->] (f.east) -- (array-2-1.west) node[midway, above left] {$i$};
+          \draw[thick,->] (f.east) -- (array-8-1.west) node[midway, below left] {$j$};
 
           \draw[dashed,->] (array-6-2.east) to [out=0,in=0, looseness=2] (array-5-2.east);
           \draw[dashed,->] (array-2-2.east) to [out=0,in=0, looseness=1] coordinate[pos=0.5] (seta) (array-6-2.east);
@@ -345,9 +588,70 @@ column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
             };
             \draw[thick,shorten <=2pt, ->] (seta.east) -- (arrayInsert.west) node[midway, above] {Inserção};
         \end{tikzpicture}
-        \caption{\label{cuckoo-filter-insert} Esquema do funcionamento da inserção de um elemento em um \textit{Cuckoo filter}}
+        \caption{\label{cuckoo-filter-insert} Esquema do funcionamento da inserção de um elemento em um \textit{Cuckoo filter} com a técnica de \textit{partial-key cuckoo hashing}}
     \end{center}
 \end{figure}
+
+O cálculo de $h_2(x)$ é ajustado de modo a evitar colisões e aprimorar a utilização da tabela. Usa-se $h(f)$ e não somente $f$ para que mesmo elementos com \textit{fingerprints} próximas tenham posições alternativas distribuídas pela tabela.
+
+Ainda assim, é possível que ocorram colisões de \textit{fingerprints}, o que é um problema caso as colisões ultrapassem o dobro do comprimento do \textit{bucket}. Assim, todas as posições primárias e alternativas para esses elementos tornam-se ocupadas e não é possível realocá-los. Essas colisões também podem ocasionar resultados falsos positivos, dado que um elemento que não foi inserido na estrutura pode ser mapeado para a \textit{fingerprint} de um item que está no filtro.
+
+\subsection{Algoritmos}
+
+Um \textit{Cuckoo filter} permite realizar operações de inserção, consulta e \textbf{remoção} de elementos.
+
+\subsubsection{Inserção}
+
+O Algoritmo \ref{alg:cf-ins} descreve o procedimento para a inserção de um elemento em um \textit{Cuckoo filter}, onde deve ser dado um número máximo de realocações até que a estrutura seja considerada cheia. O algoritmo emprega a técnica de \textit{partial-key cuckoo hashing} para a determinação dos índices primário e alternativo e armazena apenas o valor calculado para a \textit{fingerprint} na tabela.
+
+\begin{algorithm}
+    \caption{Cuckoo Filter: Inserção (\texttt{Insert})}\label{alg:cf-ins}
+    \Entrada{$x$ - elemento a ser inserido na estrutura}
+    \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento foi inserido na estrutura}
+
+    $f \leftarrow \Call{fingerprint}{x}$ \\
+    $i_1 \leftarrow \Call{hash}{x}$ \\
+    $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
+    \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada vazia}}{
+        insere $f$ em um bucket com entrada vazia \\
+        \Retorna{\texttt{Verdadeiro}}
+    }
+    $i \leftarrow \textup{escolha aleatória entre } i_1 \textup{ e } i_2$ \\
+    \Para{$n \leftarrow 0 \textup{ até } \texttt{MaxNumRealocações}$}{
+        $e \leftarrow \textup{escolha aleatória de uma entrada de } \texttt{bucket}[i]$ \\
+        troca os conteúdos de $f$ e da entrada $e$ de \texttt{bucket}$[i]$  \Comment{Realoca um elemento}\\
+        $i \leftarrow i \oplus \Call{hash}{f}$ \\
+        \Se{\texttt{bucket}$[i]$ \textup{está vazio}}{
+            insere $f$ em \texttt{bucket}$[i]$ \\
+            \Retorna{\texttt{Verdadeiro}}
+        }
+    }
+    \Retorna{\texttt{Falso}} \Comment{Considera-se que a \textit{hash table} está cheia}
+\end{algorithm}
+
+Ademais, note que em caso de necessidade de realocação, escolhe-se aleatoriamente o \textit{bucket} que deve ter um elemento realocado e, também, escolhe-se o elemento dentro do \textit{bucket} aleatoriamente.
+
+\subsubsection{Consulta}
+
+O Algoritmo \ref{alg:cf-cons} descreve o procedimento para a realização do teste de membresia de um elemento em um \textit{Cuckoo filter} com a técnica de \textit{partial-key cuckoo hashing}. Dado que todo elemento $x$ inserido na estrutura está sempre armazenado em algum dos dois \textit{buckets} de índices $h_1(x)$ e $h_2(x)$, basta verificar se a \textit{fingerprint} está armazenada em alguma entrada desses \textit{buckets}. Dessa forma, resultados falsos negativos não ocorrem desde que não se exceda o tamanho do bucket (o que é garantido pelo funcionamento do algoritmo).
+
+\begin{algorithm}
+    \caption{Cuckoo Filter: Consulta (\texttt{Query})}\label{alg:cf-cons}
+    \Entrada{$x$ - elemento a ser consultado na estrutura (teste de membresia)}
+    \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento está na estrutura}
+
+    $f \leftarrow \Call{fingerprint}{x}$ \\
+    $i_1 \leftarrow \Call{hash}{x}$ \\
+    $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
+    \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada com o conteúdo } $f$}{
+        \Retorna{\texttt{Verdadeiro}}
+    }
+    \Retorna{\texttt{Falso}}
+\end{algorithm}
+
+\subsubsection{Remoção}
+
+O Algoritmo \ref{alg:cf-rem} descreve o procedimento para a remoção de um elemento em um \textit{Cuckoo filter} com a técnica de \textit{partial-key cuckoo hashing}, o que não é permitido por um \textit{Bloom filter} tradicional. O processo de remoção de um elemento $x$ é ilustrado na Figura \ref{cuckoo-filter-remove}.
 
 \begin{figure}
     \begin{center}
@@ -385,124 +689,34 @@ column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
     \end{center}
 \end{figure}
 
-\section{\textit{Bloom filters}}
+Assim como na consulta, para a remoção de um elemento $x$, basta verificar se a \textit{fingerprint} está armazenada em alguma entrada dos \textit{buckets} de índices $h_1(x)$ ou $h_2(x)$ e, então, \textbf{remover uma entrada} do elemento. Note que apenas uma entrada do item deve ser removida do \textit{bucket}, dado que podem ocorrer colisões de \textit{fingerprints} -- portanto, nem sempre uma \textit{fingerprint} está associada a um único elemento. Por conta disso, idealmente, a remoção só pode ser executada para elementos que foram inseridos na estrutura, caso contrário há risco de remoção de outro item cujo \textit{fingerprint} colide com o elemento dado.
 
+\begin{algorithm}
+    \caption{Cuckoo Filter: Remoção (\texttt{Delete})}\label{alg:cf-rem}
+    \Entrada{$x$ - elemento a ser removido da estrutura}
+    \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento foi removido da estrutura}
 
-
-\begin{enumerate}
-    \item  \textbf{Introdução}: criador, objetivos e aplicações vantajosas dessa estrutura de dados (de forma geral);
-    \item Princípio do \textit{Bloom filter};
-    \item Dinâmica de funcionamento (construir figuras), evidenciar a possiblidade de falsos positivos e expor as susposições básicas de movo a evitar alguns casos triviais. \textbf{Limitações:} não permite remoção de elementos;
-    \item Uso de Bloom filter para estimar intersecções (aplicações em BD)
-     com $n$ elementos
-    \item Cálculo da razão de falsos positivos (\textit{false positive rate})
-    \item Cálculo de quantos bits são necessários para representar um conjunto
-    \item Algoritmos
-
-    \begin{algorithm}
-        \caption{Bloom Filter: Inserção (\texttt{Insert})}\label{alg:cap}
-        \Entrada{$x$ - elemento a ser inserido na estrutura}
-
-        \Para{$j \leftarrow 1 \textup{ até } k$}{
-            $i \leftarrow \Call{hash\textsubscript{j}}{x}$ \Comment{Itera sobre todas as $k$ funções de hashing}\\
-            \Se{\texttt{bucket}$[i]$ = 0}{
-                $\texttt{bucket}[i] \leftarrow 1$ \\
-            }
-        }
-    \end{algorithm}
-
-    \begin{algorithm}
-        \caption{Bloom Filter: Consulta (\texttt{Query})}\label{alg:cap}
-        \Entrada{$x$ - elemento a ser consultado na estrutura (teste de membresia)}
-        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento está na estrutura}
-
-        \Para{$j \leftarrow 1 \textup{ até } k$}{
-            $i \leftarrow \Call{hash\textsubscript{j}}{x}$ \\
-            \Se{\texttt{bucket}$[i]$ = 0}{
-                \Retorna{\texttt{Falso}} \\
-            }
-        }
+    $f \leftarrow \Call{fingerprint}{x}$ \\
+    $i_1 \leftarrow \Call{hash}{x}$ \\
+    $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
+    \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada com o conteúdo } $f$}{
+        remove o conteúdo de uma entrada que contém $f$ \\
         \Retorna{\texttt{Verdadeiro}}
-    \end{algorithm}
-   
-    \begin{enumerate}
-    
-        \item Inserção
-        \item Consulta
-        \item Remoção (não há suporte nos \textit{Bloom filters} padrões, usar como motivação para a exposição dos \textit{Cuckoo Filters})
-        
-    \end{enumerate}
+    }
+    \Retorna{\texttt{Falso}}
+\end{algorithm}
 
-    \begin{algorithm}
-        \caption{Cuckoo Filter: Inserção (\texttt{Insert})}\label{alg:cap}
-        \Entrada{$x$ - elemento a ser inserido na estrutura}
-        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento foi inserido na estrutura}
-    
-        $f \leftarrow \Call{fingerprint}{x}$ \\
-        $i_1 \leftarrow \Call{hash}{x}$ \\
-        $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
-        \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada vazia}}{
-            insere $f$ em um bucket com entrada vazia \\
-            \Retorna{\texttt{Verdadeiro}}
-        }
-        $i \leftarrow \textup{escolha aleatória entre } i_1 \textup{ e } i_2$ \\
-        \Para{$n \leftarrow 0 \textup{ até } \texttt{MaxNumRealocações}$}{
-            $e \leftarrow \textup{escolha aleatória de uma entrada de } \texttt{bucket}[i]$ \\
-            troca os conteúdos de $f$ e da entrada $e$ de \texttt{bucket}$[i]$  \Comment{Realoca um elemento}\\
-            $i \leftarrow i \oplus \Call{hash}{f}$ \\
-            \Se{\texttt{bucket}$[i]$ \textup{está vazio}}{
-                insere $f$ em \texttt{bucket}$[i]$ \\
-                \Retorna{\texttt{Verdadeiro}}
-            }
-        }
-        \Retorna{\texttt{Falso}} \Comment{Considera-se que a \textit{hash table} está cheia}
-    \end{algorithm}
+\clearpage
 
-    \begin{algorithm}
-        \caption{Cuckoo Filter: Consulta (\texttt{Query})}\label{alg:cap}
-        \Entrada{$x$ - elemento a ser consultado na estrutura (teste de membresia)}
-        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento está na estrutura}
-    
-        $f \leftarrow \Call{fingerprint}{x}$ \\
-        $i_1 \leftarrow \Call{hash}{x}$ \\
-        $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
-        \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada com o conteúdo } $f$}{
-            \Retorna{\texttt{Verdadeiro}}
-        }
-        \Retorna{\texttt{Falso}}
-    \end{algorithm}
+\section{Experimentos}
 
-    \begin{algorithm}
-        \caption{Cuckoo Filter: Remoção (\texttt{Delete})}\label{alg:cap}
-        \Entrada{$x$ - elemento a ser removido da estrutura}
-        \Saida{\texttt{Verdadeiro} ou \texttt{Falso} - indica se o elemento foi removido da estrutura}
-    
-        $f \leftarrow \Call{fingerprint}{x}$ \\
-        $i_1 \leftarrow \Call{hash}{x}$ \\
-        $i_2 \leftarrow i_1 \oplus \Call{hash}{f}$ \\
-        \Se{\texttt{bucket}$[i_1]$ \textup{ou} \texttt{bucket}$[i_2]$ \textup{tem uma entrada com o conteúdo } $f$}{
-            remove o conteúdo de uma entrada que contém $f$ \\
-            \Retorna{\texttt{Verdadeiro}}
-        }
-        \Retorna{\texttt{Falso}}
-    \end{algorithm}
-\end{enumerate}
+Texto
 
-\section{\textit{Cuckoo filters}}
+\newpage
 
-\begin{enumerate}
-    \item \textbf{Introdução}: objetivos e vantagens sobre Bloom filters;
-    \item \textit{Cuckoo Hash Tables}: resultados das análises matemáticas;
-    \item hashing de chave parcial
-   
-    \begin{enumerate}
-    
-        \item Inserção
-        \item Consulta
-        \item Remoção
-        
-    \end{enumerate}
-\end{enumerate}
+\section{Conclusão}
+
+Texto
 
 \clearpage
 
