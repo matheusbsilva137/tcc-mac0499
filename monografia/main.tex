@@ -29,7 +29,7 @@
 % Aqui também definimos a língua padrão do documento
 % (a última da lista) e línguas adicionais.
 %\documentclass[12pt,twoside,brazilian,english]{article}
-\documentclass[12pt,twoside,english,brazilian]{article}
+\documentclass[12pt,twoside,english,brazilian]{book}
 
 % Ao invés de definir o tamanho das margens, vamos definir os tamanhos do
 % texto, do cabeçalho e do rodapé, e deixamos a package geometry calcular
@@ -61,6 +61,7 @@
 \input{extras/languages}
 \input{extras/fonts}
 \input{extras/floats}
+\input{extras/imeusp-thesis} % capa, páginas preliminares e alguns detalhes
 \input{extras/imeusp-formatting}
 \input{extras/index}
 \input{extras/bibconfig}
@@ -114,17 +115,56 @@
 % definidos, pois além de serem utilizados para criar a capa (com o comando
 % \maketitle), também são armazenados nos metadados do PDF. O estilo padrão
 % de diversos periódicos exige também outros dados, como email, filiação etc.
-\title{Estudo do efeito de variações de \textit{Bloom filters} no desempenho de algoritmos de hifenização de palavras}
-\author{
-  Matheus Barbosa Silva\thanks{Instituto de Matemática e Estatística da Universidade de São Paulo}
+
+
+\title{
+    % Obrigatório nas duas línguas
+    titlept={Estudo do efeito de variações de \textit{Bloom filters} no desempenho de algoritmos de hifenização de palavras},
+    titleen={Title of the document},
 }
+
+\author{Matheus Barbosa Silva}
+
+% Para TCCs, este comando define o supervisor
+\orientador{Prof. Dr. Yoshiharu Kohayakawa}
+\coorientador{Prof. Dr. Guilherme Oliveira Mota}
+
+% A página de rosto da versão para depósito (ou seja, a versão final
+% antes da defesa) deve ser diferente da página de rosto da versão
+% definitiva (ou seja, a versão final após a incorporação das sugestões
+% da banca).
+\defesa{
+  nivel=tcc, % mestrado, doutorado ou tcc
+  % É a versão para defesa ou a versão definitiva?
+  %definitiva,
+  % É qualificação?
+  %quali,
+  local={São Paulo},
+  data=2022-12-14, % YYYY-MM-DD
+  % A licença do seu trabalho. Use CC-BY, CC-BY-NC, CC-BY-ND, CC-BY-SA,
+  % CC-BY-NC-SA ou CC-BY-NC-ND para escolher a licença Creative Commons
+  % correspondente (o sistema insere automaticamente o texto da licença).
+  % Se quiser estabelecer regras diferentes para o uso de seu trabalho,
+  % converse com seu orientador e coloque o texto da licença aqui, mas
+  % observe que apenas TCCs sob alguma licença Creative Commons serão
+  % acrescentados ao BDTA. Se você tem alguma intenção de publicar o
+  % trabalho comercialmente no futuro, sugerimos a licença CC-BY-NC-ND.
+  direitos={CC-BY}, % Creative Commons Attribution 4.0 International License
+  direitos={Autorizo a reprodução e divulgação total ou parcial
+           deste trabalho, por qualquer meio convencional ou
+           eletrônico, para fins de estudo e pesquisa, desde que
+           citada a fonte.},
+  % Isto deve ser preparado em conjunto com o bibliotecário
+  %fichacatalografica={nome do autor, título, etc.},
+}
+
 
 % O pacote hyperref armazena alguns metadados no PDF gerado (em particular,
 % o conteúdo de "\title" e "\author"). Também é possível armazenar outros
 % dados, como uma lista de palavras-chave ou o resumo.
 \hypersetup{
   pdfkeywords={LaTeX, artigo},
-  pdfsubject={Estudo do efeito de variações de Bloom filters no desempenho de consultas no banco de dados Apache Cassandra},
+  pdfsubject={Estudo do efeito de variações de \textit{Bloom filters} no desempenho de algoritmos de hifenização de palavras},
 }
 
 % É possível definir como determinadas palavras podem (ou não) ser
@@ -136,7 +176,7 @@
 % Por padrão, article inclui a data atual; com este comando, você pode
 % definir uma data específica, inserir algum outro texto ou, deixando o
 % conteúdo em branco, removê-la.
-\date{}
+\date{Dezembro de 2022}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -145,25 +185,117 @@
 
 \begin{document}
 
-% Gera a "capa" do artigo (geralmente, título, autor etc. sem que haja uma
-% quebra de página para o restante do conteúdo)
-\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%% CAPA E PÁGINAS INICIAIS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{abstract}
-  Uma variante do arquivo \texttt{tese.tex} usando a classe \textsf{article}.
-\end{abstract}
+% Aqui começa o conteúdo inicial que aparece antes do capítulo 1, ou seja,
+% página de rosto, resumo, sumário etc. O comando frontmatter faz números
+% de página aparecem em algarismos romanos ao invés de arábicos e
+% desabilita a contagem de capítulos.
+\frontmatter
 
-\section{Introdução}
+\pagestyle{plain}
+
+\onehalfspacing % Espaçamento 1,5 na capa e páginas iniciais
+
+\maketitle % capa e folha de rosto
+
+%%%%%%%%%%%%%%%% DEDICATÓRIA, AGRADECIMENTOS, RESUMO/ABSTRACT %%%%%%%%%%%%%%%%%%
+
+\begin{dedicatoria}
+Esta seção é opcional e fica numa página separada; ela pode ser usada para
+uma dedicatória ou epígrafe.
+\end{dedicatoria}
+
+% Reinicia o contador de páginas (a próxima página recebe o número "i") para
+% que a página da dedicatória não seja contada.
+\pagenumbering{roman}
+
+% Agradecimentos:
+% Se o candidato não quer fazer agradecimentos, deve simplesmente eliminar
+% esta página. A epígrafe, obviamente, é opcional; é possível colocar
+% epígrafes em todos os capítulos. O comando "\chapter*" faz esta seção
+% não ser incluída no sumário.
+\chapter*{Agradecimentos}
+\epigrafe{Do. Or do not. There is no try.}{Mestre Yoda}
+
+Texto texto texto texto texto texto texto texto texto texto texto texto texto
+texto texto texto texto texto texto texto texto texto texto texto texto texto
+texto texto texto texto texto texto texto texto texto texto texto texto texto
+texto texto texto texto. Texto opcional.
+
+\input{conteudo/resumoabstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% LISTAS DE FIGURAS ETC. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Como as listas que se seguem podem não incluir uma quebra de página
+% obrigatória, inserimos uma quebra manualmente aqui.
+\makeatletter
+\if@openright\cleardoublepage\else\clearpage\fi
+\makeatother
+
+% Todas as listas são opcionais; Usando "\chapter*" elas não são incluídas
+% no sumário. As listas geradas automaticamente também não são incluídas por
+% conta das opções "notlot" e "notlof" que usamos para a package tocbibind.
+
+% Normalmente, "\chapter*" faz o novo capítulo iniciar em uma nova página, e as
+% listas geradas automaticamente também por padrão ficam em páginas separadas.
+% Como cada uma destas listas é muito curta, não faz muito sentido fazer isso
+% aqui, então usamos este comando para desabilitar essas quebras de página.
+% Se você preferir, comente as linhas com esse comando e des-comente as linhas
+% sem ele para criar as listas em páginas separadas. Observe que você também
+% pode inserir quebras de página manualmente (com \clearpage, veja o exemplo
+% mais abaixo).
+\newcommand\disablenewpage[1]{{\let\clearpage\par\let\cleardoublepage\par #1}}
+
+% Nestas listas, é melhor usar "raggedbottom" (veja basics.tex). Colocamos
+% a opção correspondente e as listas dentro de um grupo para ativar
+% raggedbottom apenas temporariamente.
+\bgroup
+\raggedbottom
+
+%%%%% Listas criadas manualmente
+
+%\chapter*{Lista de Símbolos}
+\disablenewpage{\chapter*{Lista de Símbolos}}
+
+\begin{tabular}{rl}
+  $\epsilon$ & Razão de resultados falsos positivos\\
+\end{tabular}
+
+% Quebra de página manual
+\clearpage
+
+%%%%% Listas criadas automaticamente
+
+% Você pode escolher se quer ou não permitir a quebra de página
+%\listoffigures
+\disablenewpage{\listoffigures}
+
+% Sumário (obrigatório)
+\tableofcontents
+
+\egroup % Final de "raggedbottom"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CAPÍTULOS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Aqui vai o conteúdo principal do trabalho, ou seja, os capítulos que compõem
+% a dissertação/tese. O comando mainmatter reinicia a contagem de páginas,
+% modifica a numeração para números arábicos e ativa a contagem de capítulos.
+\mainmatter
+
+\pagestyle{mainmatter}
+
+% Espaçamento simples
+\singlespacing
+
+\chapter{Introdução}
 
 Texto
 
 \newpage
 
-\tableofcontents
-
-\newpage
-
-\section{\textit{Approximate set membership}}
+\chapter{\textit{Approximate set membership}}
 
 A representação de \textbf{conjuntos} de elementos por meio de estruturas de dados requer que essas estruturas sejam capazes de indicar não só as informações armazenadas, mas também responder quais elementos estão no conjunto. Nesse contexto, a verificação de que um dado elemento $x$ é membro de um conjunto $S$ (isto é, $x \in S$) é chamada de \textit{membership testing} (teste de membresia).
 
@@ -175,13 +307,13 @@ Para os cenários em que o espaço é escasso, propõe-se o \textit{approximate 
 
 À medida que essa estrutura para responder testes de membresia é comprimida, passa a existir o custo de resultados falsos positivos -- a estrutura responde que um elemento está no conjunto, quando na verdade não está. A probabilidade de ocorrência desses resultados depende do nível da compressão e da estratégia adotada pela estrutura que responde aos testes de membresia.
 
-\subsection{Implementação de Dicionário Completo}
+\section{Implementação de Dicionário Completo}
 
 Dicionário completo (ou simplesmente dicionário) é um tipo de estrutura de dados que apresenta uma entrada para cada elemento de um conjunto (isto é, há enumeração completa dos elementos). Logo, um dicionário provê respostas determinísticas para testes de membresia ao custo de consumo de espaço $\Theta(n)$.
 
 Dicionários podem ser implementados a partir de \textit{hash tables}, árvores rubro-negras ou outras estruturas de dados que permitam, usualmente, o mapeamento de pares chave-valor.
 
-\subsubsection{Interface}
+\subsection{Interface}
 
 Um dicionário deve implementar os seguintes comandos:
 \begin{itemize}
@@ -189,7 +321,7 @@ Um dicionário deve implementar os seguintes comandos:
     \item \texttt{QUERY(x)}: verifica se um dado elemento $x$ é membro do conjunto $S$ (\textit{membership testing});
 \end{itemize}
 
-\subsubsection{\textit{Hash table}}
+\subsection{\textit{Hash table}}
 
 \textit{Hash table} é uma implementação possível para a estrutura de dicionário completo. Essa estrutura mantém um array de \textit{buckets} que comportam zero ou mais elementos do conjunto $S$. 
 
@@ -231,7 +363,7 @@ Essa implementação permite que consultas sejam realizadas com tempo esperado $
 
 No entanto, o armazenamento e o acesso a elementos com comprimentos grandes (em bits) podem requerer vários acessos ao disco e causar perda de desempenho. Logo, é desejável minimizar a quantidade de acessos ao disco, de modo que o consumo real de tempo aproxime-se do esperado.
 
-\subsubsection{\textit{Hash Compaction}}
+\subsection{\textit{Hash Compaction}}
 
 A implementação de dicionários completos com \textit{hash compaction}, proposta por Wolper e Leroy, viabiliza uma \textbf{relação linear} entre o número de elementos do conjunto e o espaço consumido pela estrutura. Essa estrutura armazena os elementos do conjunto em \textbf{blocos de tamanho fixo}.
 
@@ -277,7 +409,7 @@ Já para os casos em que ocorre colisão, essa estrutura pode retornar resultado
 
 \newpage
 
-\section{\textit{Bloom filters}}
+\chapter{\textit{Bloom filters}}
 
 O \textit{Bloom filter}, estrutura de dados aleatorizada concebida por \citet{bloom}, tem o objetivo de responder a testes de membresia com \textbf{eficiência no consumo de espaço} (assim como os dicionários completos implementados com \textit{hash conmpaction}). Essa estrutura permite representar os elementos de um conjunto de forma compacta com o custo de resultados \textbf{falsos positivos} -- quando a estrutura responde que um elemento é membro do conjunto, quando de fato não é -- que variam de acordo com o tamanho escolhido para o filtro.
 
@@ -293,7 +425,7 @@ Logo, essa é uma estrutura adequada para cenários em que são permitidos erros
 
 Nesse cenário, um \textit{Bloom filter} pode ser utilizado para representar o conjunto de palavras que demandam buscas no dicionário. Assim, um resultado falso positivo corresponde a uma palavra cuja hifenização pode ser obtida pelas regras, mas foi erroneamente classificada como uma exceção. Nesse caso, a palavra não seria encontrada no dicionário (já que não é uma exceção) e, em seguida, seria hifenizada pelas regras. De todo modo são evitados acessos desnecessários ao dicionário e, dado o número pequeno de exceções, usualmente a maior parte das palavras não faz parte do filtro.
 
-\subsection{Definição}
+\section{Definição}
 
 Um \textit{Bloom filter} é descrito pelos parâmetros seguintes:
 
@@ -367,7 +499,7 @@ row 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}, every
     \end{center}
 \end{figure}
 
-\subsection{Razão de falsos positivos}
+\section{Razão de falsos positivos}
 
 O cálculo da razão de falsos positivos em um \textit{Bloom filter} é realizado a partir da supoosição de que $kn < m$, de modo que sejam evitados os casos triviais em que cada um dos $n$ elementos do conjunto $S$ possam ser mapeados para $k$ bits distintos do vetor de bits. Ademais, sem perda de generalização, assuma que todos os elementos de $S$ estão inseridos na estrutura.
 
@@ -379,7 +511,7 @@ Suponha que $m$ e $n$ são dados, então deseja-se obter um valor ótimo para $k
 
 Dado que $k \in \mathbb{N}$, escolhe-se $k = \lfloor \ln 2 \cdot (m/n) \rfloor$ de modo a minimizar o número de funções de \textit{hashing} utilizadas. No entanto, note que a determinação de um valor ótimo para o parâmetro $k$ só é possível quando se conhece ou se projeta de antemão a quantidade de elementos que devem ser representados pela estrutura.
 
-\subsection{Comprimento mínimo do filtro}
+\section{Comprimento mínimo do filtro}
 
 Dada uma razão de resultados falsos positivos $\epsilon$, deseja-se obter $m$ mínimo (o comprimento mínimo do vetor de bits do filtro) de modo a permitir resultados falsos positivos para, no máximo, uma fração $\epsilon$ de $\mathcal{U}$. Seja $u = |\mathcal{U}|$ e $n = |S|$, então o filtro deve ser capaz de identificar cada um dos $\binom{u}{n}$ conjuntos $S$ distintos.
 
@@ -389,11 +521,11 @@ Portanto, cada sequência $s$ deve representar, no máximo, $n + \epsilon(u-n)$ 
 
 A partir dessa desigualdade, obtém-se um limite inferior para o o comprimento do vetor de bits de modo que a razão de falsos positivos não ultrapasse $\epsilon$. É necessário que $m$ atenda a desigualdade $$m \geq n \frac{\log_2(1/\epsilon)}{\ln 2} = n\log_2{e} \cdot \log_2{(1/\epsilon)}.$$
 
-\subsection{Algoritmos}
+\section{Algoritmos}
 
 Um \textit{Bloom filter} permite realizar operações de inserção e consulta de elementos.
 
-\subsubsection{Inserção}
+\subsection{Inserção}
 
 O procedimento para a inserção de um elemento em um \textit{Bloom filter} é descrito no Algoritmo \ref{alg:bf-ins}, que itera sobre as $k$ funções de \textit{hashing}  e pode alterar o valor de uma posição do vetor de bits a cada iteração (logo consome tempo $\Theta(k)$).
 
@@ -409,7 +541,7 @@ O procedimento para a inserção de um elemento em um \textit{Bloom filter} é d
     }
 \end{algorithm}
 
-\subsubsection{Consulta}
+\subsection{Consulta}
 
 O Algoritmo \ref{alg:bf-cons} descreve o processo necessário para responder a testes de membresia em um \textit{Bloom filter}. Para isso, basta verificar se os $k$ bits indexados pelos resultados das funções de \textit{hashing} contêm o valor 1 (o algoritmo itera sobre as $k$ funções de \textit{hashing}, logo consome tempo $\Theta(k)$).
 
@@ -427,35 +559,35 @@ O Algoritmo \ref{alg:bf-cons} descreve o processo necessário para responder a t
     \Retorna{\texttt{Verdadeiro}}
 \end{algorithm}
 
-\subsection{Aplicações}
+\section{Aplicações}
 
 De acordo com \citet{bloom}, a aplicação de \textit{Bloom filters} é vantajosa em cenários onde a grande maioria dos elementos consultados (nos testes de membresia) não fazem parte do conjunto representado pela estrutura. A seguir são dados alguns cenários convenientes para a aplicação dessa estrutura.
 
-\subsubsection{Hifenização de palavras}
+\subsection{Hifenização de palavras}
 
 A aplicação de \textit{Bloom filters} em algoritmos de hifenização de palavras foi originalmente citada e analisada por \citet{bloom}. O processo de hifenização funciona a partir da análise de regras e exceções definidas para cada linguagem. O grupo de exceções, para cada idioma, compreende um grupo de palavras cujas hifenizações não podem ser obtidas de acordo com as regras usuais. Portanto, as hifenizações de palavras desse grupo são armazenadas em algum tipo de armazenamento persistente.
 
 Evidentemente, o grupo de exceções representa apenas uma pequena porção do total de palavras um uma dada linguagem. Nesse cenário, \citet{bloom} sugere que apenas as exceções sejam inseridas em um \textit{Bloom filter}, de modo que apenas as palavras encontradas no filtro sejam buscadas no armazenamento. Assim, um resultado falso positivo (palavra cuja hifenização pode ser obtida pelas regras, mas é classificada como uma exceção) resultaria na busca de uma palavra no armazenamento, o que não retornaria resultados e, então, obtém-se a hifenização a partir das regras usuais. 
 
-\subsubsection{Bancos de dados distribuídos}
+\subsection{Bancos de dados distribuídos}
 
 Em bancos de dados distribuídos, os dados não são centralizados e armazenados em um único local, mas sim repartidos em diversos nós que se intercomunicam. Essa estratégia é especialmente conveniente para o gerenciamento de grandes volumes de dados, já que é possível acrescer nós quando necessário e, consequentemente, aumentar a capacidade de armazenamento de dados do sistema, assim como mitigar falhas em um nó.
 
 O uso de \textit{Bloom filters} em bancos de dados distribuídos permite reduzir o tráfego de dados na rede. De fato, já que os dados não são centralizados, a resposta para uma consulta pode demandar informações de vários nós. Se um nó $A$ precisa de informações de um nó $B$ para responder a uma consulta, então o nó $A$ pode receber um \textit{Bloom filter} com os dados do nó $B$ inseridos (o que diminui o tráfego de dados na rede, já que essa é uma representação comprimida dos dados de $B$) no lugar de uma cópia completa dos dados. Ao fim do processamento, o nó $A$ pode enviar o resultado da consulta para o nó $B$ de modo que falsos positivos possam ser removidos.
 
-\subsubsection{Estimação da diferença entre conjuntos}
+\subsection{Estimação da diferença entre conjuntos}
 
 \textit{Bloom filters} também podem ser utilizados na transmissão de dados em aplicações \textit{peer-to-peer}. Dados dois pares $A$ e $B$ que armazenam os conjuntos $S_A$ e $S_B$, respectivamente, suponha que $B$ requer os dados de $S_A$ que ainda não estão em $S_B$ (isto é, $S_A - S_B$).
 
 É possível realizar essa troca de informações a partir do envio de um \textit{Bloom filter} com os elementos de $S_B$ para o par $A$. Assim, $A$ pode verificar quais de seus elementos não estão em $B$ (de acordo com os testes de membresia do filtro) e transmiti-los para $B$. Note que, dada a possibilidade de ocorrência de resultados falsos positivos, alguns elementos que pertencem a $S_A - S_B$ podem não ser enviados para $B$.
 
-\subsubsection{Estimação da intersecção de conjuntos}
+\subsection{Estimação da intersecção de conjuntos}
 
 O uso de \textit{Bloom filters} para determinar intersecções entre conjuntos é proposto por \citet{vahdat} e assemelha-se à técnica utilizada para estimar a diferença entre conjuntos. Dados dois pares $A$ e $B$ que armazenam os conjuntos $S_A$ e $S_B$, respectivamente, suponha que $B$ requer os dados de $S_A$ que também estão em $S_B$ (isto é, $S_A \cap S_B$).
 
 Uma aproximação para os elementos da interseção de $S_A$ e $S_B$ pode ser obtida a partir do envio de um \textit{Bloom filter} com os elementos de $S_B$ para $A$, o que diminui o uso da rede. Assim, $A$ realiza testes de membresia com o filtro de $S_B$ para determinar quais elementos de $S_A$ também estão em $S_B$ de acordo com o filtro e envia-os de volta a $B$. Dada a possibilidade de ocorrência de resultados falsos positivos, alguns elementos que não pertencem a $S_B$ podem ser enviados para $B$ como resultado de $S_A \cap S_B$. Ainda assim, $B$ pode testar cada um dos elementos do resultado de modo a eliminar aqueles que não pertencem a $S_B$, se necessário.
 
-\subsubsection{Protocolos de roteamento}
+\subsection{Protocolos de roteamento}
 
 Dada uma rede de nós em formato de \textbf{árvore radicada} onde cada nó detém uma lista de recursos, suponha que uma requisição por um recurso pode partir de qualquer nó dessa árvore. Cada nó deve ser capaz de responder se detém um recurso ou se é possível obtê-lo por algum de seus descendentes (assim como deve informar a lista de recursos de cada um de seus filhos). Assim, é possível decidir se uma requisição que navega por um dado nó encontrou o recurso ou se deve acessar um filho do nó ou subir um nível na árvore.
 
@@ -465,9 +597,7 @@ O \textbf{roteamento geográfico} é uma possível aplicação desse tipo de pro
 
 Cada quadrado armazena um \textit{Bloom filter} que deve representar o conjunto de dispositivos acessíveis por algum de seus filhos (subdivisões) ou irmãos (demais três quadrados). Assim, uma mensagem que parte de uma origem qualquer pode navegar pela árvore por meio de consultas aos filtros até que chegue à região de destino.
 
-\newpage
-
-\section{\textit{Cuckoo filters}}
+\chapter{\textit{Cuckoo filters}}
 
 O \textit{cuckoo filter}, descrito por \citet{cuckoo}, é proposto como uma alternativa ao \textit{Bloom filter} tradicional para os cenários em que a remoção de elementos da estrutura é necessária. Para isso, utiliza-se o \textbf{\textit{cuckoo hashing}} como um modo de construção do filtro, o que permite que elementos sejam removidos sem que seja necessário usar espaço adicional, como ocorre nos \textit{counting Bloom filters}.
 
@@ -484,11 +614,11 @@ Destacam-se algumas vantagens do \textit{cuckoo filter} sobre o \textit{Bloom fi
     \end{itemize}
 \end{quote}
 
-\subsection{\textit{Cuckoo hash tables}}
+\section{\textit{Cuckoo hash tables}}
 
 Uma \textit{cuckoo hash table} é um tipo especial de \textit{hash table} que insere e remove elementos da estrutura usando a técnica de \textit{cuckoo hashing}. Essa estrutura é composta por um vetor de \textit{buckets} e duas funções de \textit{hashing} $h_1(x)$ e $h_2(x)$ que mapeiam um dado elemento $x$ para dois \textit{buckets} da estrutura. Um \textit{bucket} pode ser uma estrutura capaz de armazenar um ou mais elementos (como um vetor), de modo que o funcionamento da estrutura é, essencialmente, o mesmo em qualquer caso.
 
-\subsubsection{Inserção}
+\subsection{Inserção}
 
 Caso algum dos dois \textit{buckets} de índices dados pelas funções de \textit{hashing} tenha espaço para um novo elemento, $x$ é inserido no \textit{bucket} disponível. Caso contrário, seleciona-se um dos dois \textit{buckets} e $x$ toma o lugar de um elemento anteriormente inserido. Nesse cenário, o elemento removido é \textbf{realocado}: o processo de inserção é executado novamente com o elemento removido. Realizam-se realocações sucessivas até que seja encontrado um \textit{bucket} disponível (onde nenhum elemento precisa ser realocado) ou até que seja atingido um limite de realocações, onde a estrutura é considerada muito cheia para comportar o novo elemento.
 
@@ -535,15 +665,15 @@ column 2/.style={nodes={font=\tiny,draw=none, fill=none, minimum size=8mm}}}]
 
 Deste modo, todo elemento inserido na estrutura sempre está em algum dos dois \textit{buckets} de índices dados pelas funções de \textit{hashing}. Apesar do custo das realocações de elementos, \textbf{o tempo amortizado das inserções é $O(1)$}, de acordo com \citet{cuckoo}.
 
-\subsubsection{Consulta}
+\subsection{Consulta}
 
 O comando \texttt{QUERY(x)} é aplicado a partir da verificação dos dois \textit{buckets} de índices $i_1 = h_1(x)$ e $i_2 = h_2(x)$. O resultado da consulta é positivo caso o elemento seja encontrado em algum dos dois \textit{buckets}, ou negativo caso contrário.
 
-\subsubsection{Remoção}
+\subsection{Remoção}
 
 Dado que um elemento sempre deve estar em algum dos dois \textit{buckets} indicados pelas funções de \textit{hashing}, uma remoção \texttt{REMOVE(x)} demanda apenas a verificação e exclusão de $x$ de um dos dois \textit{buckets}.
 
-\subsection{Definição}
+\section{Definição}
 
 Um \textit{cuckoo filter} é uma versão compacta de uma \textit{cuckoo hash table} que deve armazenar \textbf{\textit{fingerprints}} no lugar de elementos. \textit{Fingerprints} são sequências de bits associadas a um elemento a partir de uma função de \textit{hashing}. O comprimento dessa sequência de bits é determinado de acordo com a razão de falsos positivos $\epsilon$, dado que podem ocorrer colisões nesse processo de compressão. Cada entrada dos \textit{buckets} da estrutura devem comportar \textit{fingerprints} do comprimento escolhido.
 
@@ -596,11 +726,11 @@ O cálculo de $h_2(x)$ é ajustado de modo a evitar colisões e aprimorar a util
 
 Ainda assim, é possível que ocorram colisões de \textit{fingerprints}, o que é um problema caso as colisões ultrapassem o dobro do comprimento do \textit{bucket}. Assim, todas as posições primárias e alternativas para esses elementos tornam-se ocupadas e não é possível realocá-los. Essas colisões também podem ocasionar resultados falsos positivos, dado que um elemento que não foi inserido na estrutura pode ser mapeado para a \textit{fingerprint} de um item que está no filtro.
 
-\subsection{Algoritmos}
+\section{Algoritmos}
 
 Um \textit{Cuckoo filter} permite realizar operações de inserção, consulta e \textbf{remoção} de elementos.
 
-\subsubsection{Inserção}
+\subsection{Inserção}
 
 O Algoritmo \ref{alg:cf-ins} descreve o procedimento para a inserção de um elemento em um \textit{Cuckoo filter}, onde deve ser dado um número máximo de realocações até que a estrutura seja considerada cheia. O algoritmo emprega a técnica de \textit{partial-key cuckoo hashing} para a determinação dos índices primário e alternativo e armazena apenas o valor calculado para a \textit{fingerprint} na tabela.
 
@@ -631,7 +761,7 @@ O Algoritmo \ref{alg:cf-ins} descreve o procedimento para a inserção de um ele
 
 Ademais, note que em caso de necessidade de realocação, escolhe-se aleatoriamente o \textit{bucket} que deve ter um elemento realocado e, também, escolhe-se o elemento dentro do \textit{bucket} aleatoriamente.
 
-\subsubsection{Consulta}
+\subsection{Consulta}
 
 O Algoritmo \ref{alg:cf-cons} descreve o procedimento para a realização do teste de membresia de um elemento em um \textit{Cuckoo filter} com a técnica de \textit{partial-key cuckoo hashing}. Dado que todo elemento $x$ inserido na estrutura está sempre armazenado em algum dos dois \textit{buckets} de índices $h_1(x)$ e $h_2(x)$, basta verificar se a \textit{fingerprint} está armazenada em alguma entrada desses \textit{buckets}. Dessa forma, resultados falsos negativos não ocorrem desde que não se exceda o tamanho do bucket (o que é garantido pelo funcionamento do algoritmo).
 
@@ -649,7 +779,7 @@ O Algoritmo \ref{alg:cf-cons} descreve o procedimento para a realização do tes
     \Retorna{\texttt{Falso}}
 \end{algorithm}
 
-\subsubsection{Remoção}
+\subsection{Remoção}
 
 O Algoritmo \ref{alg:cf-rem} descreve o procedimento para a remoção de um elemento em um \textit{Cuckoo filter} com a técnica de \textit{partial-key cuckoo hashing}, o que não é permitido por um \textit{Bloom filter} tradicional. O processo de remoção de um elemento $x$ é ilustrado na Figura \ref{cuckoo-filter-remove}.
 
@@ -708,13 +838,69 @@ Assim como na consulta, para a remoção de um elemento $x$, basta verificar se 
 
 \clearpage
 
-\section{Experimentos}
+\chapter{Experimentos}
+
+De acordo com \citet{bloom}, a aplicação de \textit{Bloom filters} é especialmente vantajosa em algoritmos hifenizadores de palavras. Essa estrutura pode ser aplicada de modo a representar o conjunto de exceções às regras usuais de hifenização de cada idioma. Para reprosduzir a utilização do \texttt{hypher} \footnote{Disponível em: \url{https://github.com/bramstein/hypher}}
+
+Todos os experimentos foram realizados em uma máquina com processador AMD Ryzen 7 3700U (2.30 GHz) com 20GB de memória RAM e sistema operacional Windows 10 de 64 bits.
+
+\section{Análise do desempenho de \textit{Bloom filters}}
 
 Texto
 
-\newpage
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{img/bloom-filter.png}
+        \caption{\label{three-layer} Tempo médio de processamento de uma mesma lista de palavras em um algoritmo de hifenização implementado com um \textit{Bloom filter} (com intervalos de confiança de 95\%)}
+    \end{center}
+\end{figure}
 
-\section{Conclusão}
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{img/build-bloom-filter.png}
+        \caption{\label{three-layer} Tempo médio de construção de um \textit{Bloom filter} para uma mesma lista de exceções em um algoritmo hifenizador de palavras (com intervalos de confiança de 95\%)}
+    \end{center}
+\end{figure}
+
+\section{Análise do desempenho de \textit{Cuckoo filters}}
+
+Texto
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{img/cuckoo-filter.png}
+        \caption{\label{cuckoo-filter} Tempo médio de processamento de uma mesma lista de palavras em um algoritmo de hifenização implementado com um \textit{cuckoo filter} (com intervalos de confiança de 95\%)}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{img/build-cuckoo-filter.png}
+        \caption{\label{build-cuckoo-filter} Tempo médio de construção de um \textit{cuckoo filter} para uma mesma lista de exceções em um algoritmo hifenizador de palavras (com intervalos de confiança de 95\%)}
+    \end{center}
+\end{figure}
+
+\section{Análise comparativa do desempenho de \textit{Bloom filters} e \textit{Cuckoo filters}}
+
+Texto
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{img/cuckoo-bloom-comparison.png}
+        \caption{\label{cuckoo-bloom-comparison} Comparação entre os tempos médios de processamento de uma mesma lista de palavras em um algoritmo hifenizador de palavras implementado com \textit{Bloom filter} e com \textit{cuckoo filter}}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{img/build-cuckoo-bloom-comparison.png}
+        \caption{\label{build-cuckoo-bloom-comparison} Comparação entre os tempos médios de construção do filtro para uma mesma lista de exceções em um algoritmo hifenizador de palavras implementado com \textit{Bloom filter} e com \textit{cuckoo filter}}
+    \end{center}
+\end{figure}
+
+\clearpage
+
+\chapter{Conclusão}
 
 Texto
 
