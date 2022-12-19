@@ -40,6 +40,9 @@
 \usepackage[portuguese,ruled,linesnumbered]{algorithm2e}
 \usepackage{algpseudocode}
 \usepackage{tikz}
+\definecolor{DarkGreen}{RGB}{1,50,32}
+\definecolor{NavyBlue}{RGB}{32,42,68}
+\definecolor{DarkRed}{RGB}{139,0,0}
 
 \usetikzlibrary{matrix}
 
@@ -126,8 +129,8 @@
 \author{Matheus Barbosa Silva}
 
 % Para TCCs, este comando define o supervisor
-\orientador{Prof. Dr. Yoshiharu Kohayakawa}
-\coorientador{Prof. Dr. Guilherme Oliveira Mota}
+\orientador{Prof. Dr. Guilherme Oliveira Mota}
+\coorientador{Prof. Dr. Yoshiharu Kohayakawa}
 
 % A página de rosto da versão para depósito (ou seja, a versão final
 % antes da defesa) deve ser diferente da página de rosto da versão
@@ -677,7 +680,7 @@ Dado que um elemento sempre deve estar em algum dos dois \textit{buckets} indica
 
 Um \textit{cuckoo filter} é uma versão compacta de uma \textit{cuckoo hash table} que deve armazenar \textbf{\textit{fingerprints}} no lugar de elementos. \textit{Fingerprints} são sequências de bits associadas a um elemento a partir de uma função de \textit{hashing}. O comprimento dessa sequência de bits é determinado de acordo com a razão de falsos positivos $\epsilon$, dado que podem ocorrer colisões nesse processo de compressão. Cada entrada dos \textit{buckets} da estrutura devem comportar \textit{fingerprints} do comprimento escolhido.
 
-Um fator relevante na construção de \textit{cuckoo filters} é a escolha de uma posição alternativa para cada elemento dado (isto é, a definição de $h_2(x)$). O \textit{partial-key cuckoo hashing} é proposto por \citet{cuckoo} como uma forma de obter uma alto nível ocupação da tabela, o que evita falhas na execução de inserções. Seja $f= \texttt{fingerprint}(x)$ e dada uma função de \textit{hashing} $h(x)$, então a técnica de \textit{partial-key cuckoo hashing} propõe que as funções de hashing escolhidas sejam:  $$h_1(x) = h(x),$$ $$h_2(x) = h_1(x) \oplus h(f).$$
+Um fator relevante na construção de \textit{cuckoo filters} é a escolha de uma posição alternativa para cada elemento dado (isto é, a definição de $h_2(x)$). O \textit{partial-key cuckoo hashing} é proposto por \citet{cuckoo} como uma forma de obter um alto nível ocupação da tabela, o que evita falhas na execução de inserções. Seja $f= \texttt{fingerprint}(x)$ e dada uma função de \textit{hashing} $h(x)$, então a técnica de \textit{partial-key cuckoo hashing} propõe que as funções de hashing escolhidas sejam:  $$h_1(x) = h(x) = i,$$ $$h_2(x) = h_1(x) \oplus h(f) = j.$$
 
 A operação $\oplus$ é especialmente importante para assegurar que a partir de uma \textit{fingerprint} $f$ é possível obter o valor de $h_1(x)$ mesmo sem que o valor de $x$ seja armazenado separadamente. Dado que um \textit{fingerprint} $f$ está armazenado em uma posição $i$, sua posição alternativa $j$ pode ser facilmente obtida: $j = i \oplus h(f)$. De fato, se $f$ está armazenado em $h_2(x)$, então $h_2(x) \oplus h(f) = h_1(x) \oplus h(f) \oplus h(f) = h_1(x)$ e se $f$ está armazenado em $h_1(x)$, segue que $h_1(x) \oplus h(f) = h_2(x)$ da definição.
 
@@ -840,7 +843,7 @@ Assim como na consulta, para a remoção de um elemento $x$, basta verificar se 
 
 \chapter{Experimentos}
 
-De acordo com \citet{bloom}, a aplicação de \textit{Bloom filters} é especialmente vantajosa em algoritmos hifenizadores de palavras. Essa estrutura pode ser aplicada de modo a representar o conjunto de exceções às regras usuais de hifenização de cada idioma. Para reprosduzir a utilização do \texttt{hypher} \footnote{Disponível em: \url{https://github.com/bramstein/hypher}}
+De acordo com \citet{bloom}, a aplicação de \textit{Bloom filters} é especialmente vantajosa em algoritmos hifenizadores de palavras. Essa estrutura pode ser aplicada de modo a representar o conjunto de exceções às regras usuais de hifenização de cada idioma. Para reproduzir a utilização do \texttt{hypher}\footnote{Disponível em: \url{https://github.com/bramstein/hypher}} implementação de \textit{Bloom filters} e \textit{cuckoo filters} em Javascript\footnote{Disponível em: \url{https://github.com/Callidon/bloom-filters}}
 
 Todos os experimentos foram realizados em uma máquina com processador AMD Ryzen 7 3700U (2.30 GHz) com 20GB de memória RAM e sistema operacional Windows 10 de 64 bits.
 
